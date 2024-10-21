@@ -39,8 +39,7 @@ void Scanner::PrintError(string errorMessage, string lexeme) {
     else {
         cout << "Find: " << lexeme << " . Error: " << errorMessage << endl;
     }
-    cout << "Нераспознанный символ: " << code[pointer - 1] << endl; // Информация о текущем символе
-    exit(1); // Завершение программы при ошибке
+    //exit(1); // Завершение программы при ошибке
 }
 
 // Макросы для проверки символов
@@ -95,74 +94,21 @@ int Scanner::Scan(TypeLex lexeme) {
         return typeEnd; // Возврат типа конца
     }
 
-    // Обработка целых чисел
-    if (isNumber) {
-        // Чтение целого числа
+    // Считывание токена 
+    if (isLetterLower || isLetterUpper || code[pointer] == '_') { // Обработка идентификаторов
         do {
             if (i < MAX_LEX - 1) {
                 lexeme[i++] = code[pointer++];
             }
-            else {
-                PrintError("Int literal too long", lexeme);
-                return typeError; // Возврат ошибки
-            }
-        } while (isNumber);
-
-        // Проверка на вещественное число
-        if (code[pointer] == '.') {
-            if (i == 0) { // '.' не может быть первым символом
-                PrintError("Invalid float format", lexeme);
-                return typeError;
-            }
-            lexeme[i++] = code[pointer++]; // добавляем точку
-
-            // Считываем дробную часть
-            while (isNumber) {
-                if (i < MAX_LEX - 1) {
-                    lexeme[i++] = code[pointer++];
-                }
-                else {
-                    PrintError("Double literal too long", lexeme);
-                    return typeError; // Возврат ошибки
-                }
-            }
-
-            // Проверка на экспоненциальный формат
-            if (code[pointer] == 'E' || code[pointer] == 'e') {
-                lexeme[i++] = code[pointer++]; // добавляем символ экспоненты
-
-                // Обработка знака экспоненты
-                if (code[pointer] == '+' || code[pointer] == '-') {
-                    lexeme[i++] = code[pointer++];
-                }
-
-                // Считываем целое число для экспоненты
-                while (isNumber) {
-                    if (i < MAX_LEX - 1) {
-                        lexeme[i++] = code[pointer++];
-                    }
-                    else {
-                        PrintError("Double literal too long", lexeme);
-                        return typeError; // Возврат ошибки
-                    }
-                }
-            }
-
-            lexeme[i] = '\0'; // Завершение строки
-            return constDouble; // Возврат вещественного числа
-        }
-
-        lexeme[i] = '\0'; // Завершение строки
-        return constInt; // Возврат целого числа
-    }
-
-    // Обработка идентификаторов и ключевых слов
-    if (isLetterLower || isLetterUpper) {
-        do {
-            if (i < MAX_LEX - 1) lexeme[i++] = code[pointer++];
         } while (isNumber || isLetterLower || isLetterUpper || code[pointer] == '_');
 
         lexeme[i] = '\0'; // Завершение идентификатора
+
+        // Проверка на недопустимое начало идентификатора
+        if (isdigit(lexeme[0])) { // Проверяем первый символ
+            PrintError("Invalid identifier: cannot start with a digit", lexeme);
+            return typeError; // Возврат ошибки
+        }
 
         // Определяем, является ли идентификатор ключевым словом
         for (int j = 0; j < MAX_KEYW; j++) {
@@ -173,6 +119,39 @@ int Scanner::Scan(TypeLex lexeme) {
 
         return typeID; // Возврат идентификатора
     }
+
+    // Обработка числовых литералов (включая экспоненты)
+    if (isdigit(code[pointer])) { // Начинаем с числа
+        // Считывание числа
+        do {
+            if (i < MAX_LEX - 1) {
+                lexeme[i++] = code[pointer++];
+            }
+        } while (isNumber); // Считываем цифры
+
+        // Проверка на наличие экспоненты
+        if (code[pointer] == 'e' || code[pointer] == 'E') {
+            lexeme[i++] = code[pointer++]; // Добавить 'e' или 'E'
+            if (code[pointer] == '+' || code[pointer] == '-') { // Проверка знака экспоненты
+                lexeme[i++] = code[pointer++];
+            }
+            while (isNumber) { // Считываем числа после экспоненты
+                if (i < MAX_LEX - 1) {
+                    lexeme[i++] = code[pointer++];
+                }
+            }
+        }
+
+        lexeme[i] = '\0'; // Завершение строки
+        // Проверка на валидность числа
+        if (isdigit(lexeme[0]) && strcmp(lexeme, "1e") == 0) { // Неправильный идентификатор
+            PrintError("Invalid identifier: cannot be like '1e'", lexeme);
+            return typeError; // Возвращаем ошибку
+        }
+
+        return constDouble; // Возврат вещественного числа 
+    }
+
 
     // Обработка специальных символов и знаков операций
     switch (code[pointer]) {
@@ -244,6 +223,6 @@ int Scanner::Scan(TypeLex lexeme) {
         PrintError("Wrong symbol", lexeme);
         return typeError;
     }
-
+    PrintError("Wrong symbol", lexeme);
     return typeError; // Возврат ошибки при нераспознании токена
 }
