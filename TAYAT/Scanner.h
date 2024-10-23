@@ -5,7 +5,6 @@
 
 #include "LEXEME.h"
 #include <iostream>
-#include <string.h>
 using namespace std;
 
 class Scanner
@@ -46,6 +45,26 @@ public:
 	void PrintError(string errorMessage, string lexeme);	//Печать ошибок
 private:
 	void GetData(FILE* in);									//Получение данных
+
+	int parseNumber(TypeLex lexeme, int& i);
+
+    int handleFloatingPoint(TypeLex lexeme, int& i);
+
+    int handleExponent(TypeLex lexeme, int& i);
+
+    int handleExponentDigits(TypeLex lexeme, int& i);
+
+    int parseIdentifierOrKeyword(TypeLex lexeme, int& i);
+
+	int parseSymbol(TypeLex lexeme, int& i);
+
+	int handleIdentifier(TypeLex lexeme, int& i);
+
+	int handleOtherTokens(TypeLex lexeme, int& i);
+
+    int handleError(char token, TypeLex lexeme);
+
+	int handleNumber(TypeLex lexeme, int& i);
 };
 
 #endif

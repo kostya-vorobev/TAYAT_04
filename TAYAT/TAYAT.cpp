@@ -1,5 +1,4 @@
-﻿#include <iostream>
-#include "Scanner.h"
+﻿#include "Scanner.h"
 
 int main()
 {
@@ -25,9 +24,9 @@ int main()
         }
 
         // Обработка результата сканирования
-        std::cout << "Лексема: " << lexeme << ", Тип: " << result << std::endl;
+        std::cout << "Лексема: " << lexeme << "\t Тип: " << result << std::endl;
     }
-
+    
     fclose(file); // Закрытие файла в конце
     return 0;
 }

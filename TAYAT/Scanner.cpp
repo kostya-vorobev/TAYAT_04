@@ -1,228 +1,326 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "Scanner.h"
 
-Scanner::Scanner(FILE* in) {
-    GetData(in);
-    putPointer(0);
-    lastLineBreakPosition = 0;
-    currentLine = 0;
+// Конструктор класса Scanner: инициализация данных и установка указателя на начало.
+Scanner::Scanner(FILE* in)
+{
+    GetData(in);            // Получаем данные из файла
+    putPointer(0);         // Устанавливаем указатель на начало кода
+    lastLineBreakPosition = 0; // Начальная позиция последнего разрыва строки
+    currentLine = 0;       // Начальный номер текущей строки
 }
 
-// Считывание данных из файла
-void Scanner::GetData(FILE* in) {
-    if (in == NULL) {
-        PrintError("Can't open file", "");
+// Чтение данных из входного файла
+void Scanner::GetData(FILE* in)
+{
+    if (in == NULL)
+    {
+        PrintError("Can't open file", ""); // Вывод сообщения об ошибке, если файл не открыт
     }
+
     int i = 0;
     char tmp;
-
-    // Чтение файла по символам
-    while (!feof(in)) {
-        fscanf(in, "%c", &tmp);
-        if (!feof(in)) {
-            code[i++] = tmp;
-        }
-        if (i > MAX_TEXT) {
-            PrintError("Error in source file", "");
-            exit(1);
+    // Чтение символов до конца файла
+    while (!feof(in))
+    {
+        fscanf(in, "%c", &tmp); // Чтение одного символа
+        if (!feof(in))
+            code[i++] = tmp; // Сохранение символа в массив
+        if (i > MAX_TEXT)
+        {
+            PrintError("Error in source file", ""); // Ошибка, если превышен максимальный размер текста
+            exit(1); // Завершение программы
         }
     }
     code[i] = '\0'; // Завершение строки
-    fclose(in); // Закрытие файла
+    fclose(in);     // Закрытие файла
 }
 
-// Вывод сообщения об ошибке
-void Scanner::PrintError(string errorMessage, string lexeme) {
-    if (lexeme[0] == 0) {
-        cout << "Error: " << errorMessage << endl;
-    }
-    else {
-        cout << "Find: " << lexeme << " . Error: " << errorMessage << endl;
-    }
-    //exit(1); // Завершение программы при ошибке
+// Вывод ошибки
+void Scanner::PrintError(string errorMessage, string lexeme)
+{
+    if (lexeme[0] == 0)
+        cout << "Error: " << errorMessage << endl; // Вывод ошибки без лексемы
+    else
+        cout << "Find: " << lexeme << " . Error: " << errorMessage << endl; // Ошибка с лексемой
 }
 
-// Макросы для проверки символов
+// Макросы для определения различных символов
 #define isNumber (code[pointer] <= '9') && (code[pointer] >= '0')
 #define isLetterLower (code[pointer] >= 'a') && (code[pointer] <= 'z')
 #define isLetterUpper (code[pointer] >= 'A') && (code[pointer] <= 'Z')
 
-// Определение ключевых слов
-TypeLex Keyword[MAX_KEYW] = {
-    "const", "short", "long", "int", "double", "switch",
-    "case", "break", "default", "return", "class", "main"
-};
+// Массив ключевых слов для сканера
+TypeLex Keyword[MAX_KEYW] = { "const", "short", "long", "int", "double", "switch", "case",
+"break", "default", "return", "class", "main" };
 
-// Индексы ключевых слов
-int IndexKW[MAX_KEYW] = {
-    typeConst, typeShort, typeLong, typeInt, typeDouble,
-    typeSwitch, typeCase, typeBreak, typeDefault, typeReturn,
-    typeClass, typeMain
-};
+// Индексы для ключевых слов
+int IndexKW[MAX_KEYW] = { typeConst, typeShort, typeLong, typeInt, typeDouble,
+typeSwitch, typeCase, typeBreak, typeDefault, typeReturn, typeClass, typeMain };
 
-// Основной метод сканирования
-int Scanner::Scan(TypeLex lexeme) {
+// Основной метод сканирования лексем
+int Scanner::Scan(TypeLex lexeme)
+{
     int i;
-    for (int j = 0; j < MAX_LEX; j++)
-        lexeme[j] = 0; // Инициализация лексемы
-
+    string errorMessage = "";
+    for (int i = 0; i < MAX_LEX; i++)
+        lexeme[i] = 0; // Инициализация лексемы
     i = 0;
-    bool ignoreSymbols = true;
+    bool ignoreSymbols = true; // Флаг игнорирования символов
 
-    // Игнорирование пробелов и комментариев
-    while (ignoreSymbols) {
-        while (code[pointer] == ' ' || code[pointer] == '\n' || code[pointer] == '\t') {
-            if (code[pointer] == '\n') {
-                currentLine++;
-                lastLineBreakPosition = pointer; // Обновление позиции последнего разрыва строки
+    // Игнорируем пробельные символы и комментарии
+    while (ignoreSymbols)
+    {
+        while (code[pointer] == ' ' || code[pointer] == '\n' || code[pointer] == '\t')
+        {
+            if (code[pointer] == '\n')
+            {
+                currentLine++; // Увеличиваем номер строки при встрече с новой строкой
+                lastLineBreakPosition = pointer; // Устанавливаем позицию последнего разрыва строки
             }
-            pointer++;
+            pointer++; // Продвигаем указатель
         }
-        if ((code[pointer] == '/') && (code[pointer + 1] == '/')) {
-            pointer += 2; // Пропуск комментариев
+        // Обработка однострочных комментариев
+        if ((code[pointer] == '/') && (code[pointer + 1] == '/'))
+        {
+            pointer += 2; // Пропускаем символы комментария
             while ((code[pointer] != '\n') && (code[pointer] != '\0'))
-                pointer++;
+                pointer++; // Идем до конца комментария
         }
         else {
-            ignoreSymbols = false; // Выход из цикла при нахождении символа
+            ignoreSymbols = false; // Прекращаем игнорирование символов
         }
     }
 
     // Обработка конца файла
-    if (code[pointer] == '\0') {
-        lexeme[0] = '#';
-        return typeEnd; // Возврат типа конца
+    if (code[pointer] == '\0')
+    {
+        lexeme[0] = '#'; // Устанавливаем символ конца
+        return typeEnd; // Возвращаем тип окончания
     }
 
-    // Считывание токена 
-    if (isLetterLower || isLetterUpper || code[pointer] == '_') { // Обработка идентификаторов
-        do {
-            if (i < MAX_LEX - 1) {
-                lexeme[i++] = code[pointer++];
-            }
-        } while (isNumber || isLetterLower || isLetterUpper || code[pointer] == '_');
-
-        lexeme[i] = '\0'; // Завершение идентификатора
-
-        // Проверка на недопустимое начало идентификатора
-        if (isdigit(lexeme[0])) { // Проверяем первый символ
-            PrintError("Invalid identifier: cannot start with a digit", lexeme);
-            return typeError; // Возврат ошибки
+    // Обработка чисел
+    if (isNumber)
+    {
+        lexeme[i++] = code[pointer++]; // Записываем первый символ числа
+        while (isNumber)
+            if (i < MAX_NUM - 1)
+                lexeme[i++] = code[pointer++]; // Записываем оставшиеся цифры
+            else
+                pointer++; // Пропускаем лишние символы
+        // Если превышен максимальный размер числа
+        if (i >= MAX_NUM - 1)
+        {
+            PrintError("Overflow: maximum lexeme size exceeded while processing a number", lexeme);
+            for (int i = 0; i < MAX_LEX; i++)
+                lexeme[i] = 0; // Сброс лексемы
+            i = 0;
+            return typeError; // Возвращаем тип ошибки
         }
-
-        // Определяем, является ли идентификатор ключевым словом
-        for (int j = 0; j < MAX_KEYW; j++) {
-            if (strcmp(lexeme, Keyword[j]) == 0) {
-                return IndexKW[j]; // Возвращаем соответствующий тип ключевого слова
-            }
+        // Обработка десятичных чисел
+        if (code[pointer] == '.')
+        {
+            lexeme[i++] = code[pointer++];
+            return handleFloatingPoint(lexeme, i); // Обработка плавающей точки
         }
-
-        return typeID; // Возврат идентификатора
+        // Обработка научной нотации
+        if ((code[pointer] == 'E') || (code[pointer] == 'e'))
+        {
+            lexeme[i++] = code[pointer++];
+            if (handleExponent(lexeme, i) == constDouble)
+                return constDouble; // Возвращаем тип числа с плавающей точкой
+        }
+        return constInt; // Возвращаем тип целого числа
     }
 
-    // Обработка числовых литералов (включая экспоненты)
-    if (isdigit(code[pointer])) { // Начинаем с числа
-        // Считывание числа
-        do {
-            if (i < MAX_LEX - 1) {
-                lexeme[i++] = code[pointer++];
-            }
-        } while (isNumber); // Считываем цифры
-
-        // Проверка на наличие экспоненты
-        if (code[pointer] == 'e' || code[pointer] == 'E') {
-            lexeme[i++] = code[pointer++]; // Добавить 'e' или 'E'
-            if (code[pointer] == '+' || code[pointer] == '-') { // Проверка знака экспоненты
-                lexeme[i++] = code[pointer++];
-            }
-            while (isNumber) { // Считываем числа после экспоненты
-                if (i < MAX_LEX - 1) {
-                    lexeme[i++] = code[pointer++];
-                }
-            }
+    // Обработка идентификаторов
+    if (isLetterLower || isLetterUpper)
+    {
+        lexeme[i++] = code[pointer++]; // Записываем первый символ идентификатора
+        while (isNumber || isLetterLower || isLetterUpper || code[pointer] == '_')
+            if (i < MAX_LEX - 1)
+                lexeme[i++] = code[pointer++]; // Записываем оставшиеся символы
+            else
+                pointer++; // Пропускаем лишние символы
+        // Проверка на максимальную длину идентификатора
+        if (i >= MAX_LEX - 1)
+        {
+            PrintError("Overflow: maximum lexeme size exceeded while processing an identifier", lexeme);
+            for (int i = 0; i < MAX_LEX; i++)
+                lexeme[i] = 0; // Сброс лексемы
+            i = 0;
+            return typeError; // Возвращаем тип ошибки
         }
-
-        lexeme[i] = '\0'; // Завершение строки
-        // Проверка на валидность числа
-        if (isdigit(lexeme[0]) && strcmp(lexeme, "1e") == 0) { // Неправильный идентификатор
-            PrintError("Invalid identifier: cannot be like '1e'", lexeme);
-            return typeError; // Возвращаем ошибку
-        }
-
-        return constDouble; // Возврат вещественного числа 
+        // Проверка идентификатора на ключевое слово
+        int j;
+        for (j = 0; j < MAX_KEYW; j++)
+            if (strcmp(lexeme, Keyword[j]) == 0)
+                return IndexKW[j]; // Возвращаем индекс ключевого слова
+        return typeID; // Возвращаем тип идентификатора
     }
 
-
-    // Обработка специальных символов и знаков операций
-    switch (code[pointer]) {
-    case '.': lexeme[i++] = code[pointer++]; return typePoint;
-    case ',': lexeme[i++] = code[pointer++]; return typeComma;
-    case ';': lexeme[i++] = code[pointer++]; return typeSemicolon;
-    case ':': lexeme[i++] = code[pointer++]; return typeColon;
-    case '(': lexeme[i++] = code[pointer++]; return typeLeftBracket;
-    case ')': lexeme[i++] = code[pointer++]; return typeRightBracket;
-    case '{': lexeme[i++] = code[pointer++]; return typeLeftBrace;
-    case '}': lexeme[i++] = code[pointer++]; return typeRightBrace;
-    case '[': lexeme[i++] = code[pointer++]; return typeLeftSqBracket;
-    case ']': lexeme[i++] = code[pointer++]; return typeRightSqBracket;
-
+    // Обработка операторов и символов
+    lexeme[i++] = code[pointer++];
+    switch (code[pointer - 1])
+    {
+    case '.':
+        if (isNumber)
+        {
+            lexeme[i++] = code[pointer++];
+            return handleFloatingPoint(lexeme, i);
+        }
+        return typePoint; // Возвращаем тип точки
+    case ',':
+        return typeComma; // Возвращаем тип запятой
+    case ';':
+        return typeSemicolon; // Возвращаем тип точки с запятой
+    case ':':
+        return typeColon; // Возвращаем тип двоеточия
+    case '(':
+        return typeLeftBracket; // Возвращаем тип левой скобки
+    case ')':
+        return typeRightBracket; // Возвращаем тип правой скобки
+    case '{':
+        return typeLeftBrace; // Возвращаем тип левой фигурной скобки
+    case '}':
+        return typeRightBrace; // Возвращаем тип правой фигурной скобки
+    case '%':
+        return typeMod; // Возвращаем тип оператора остатка
+    case '/':
+        return typeDiv; // Возвращаем тип оператора деления
+    case '*':
+        return typeMul; // Возвращаем тип оператора умножения
+    case '-':
+        return typeMinus; // Возвращаем тип оператора вычитания
+    case '+':
+        return typePlus; // Возвращаем тип оператора сложения
     case '=':
-        lexeme[i++] = code[pointer++];
         if (code[pointer] == '=')
+        {
             lexeme[i++] = code[pointer++];
-        return typeEval;
-
-    case '%': lexeme[i++] = code[pointer++]; return typeMod;
-    case '/': lexeme[i++] = code[pointer++]; return typeDiv;
-    case '*': lexeme[i++] = code[pointer++]; return typeMul;
-    case '-': lexeme[i++] = code[pointer++]; return typeMinus;
-    case '+': lexeme[i++] = code[pointer++]; return typePlus;
-
-    case '<':
-        lexeme[i++] = code[pointer++];
-        if (code[pointer] == '=') {
-            lexeme[i++] = code[pointer++];
-            return typeLessOrEq;
+            return typeEq; // Возвращаем тип оператора равенства
         }
-        return typeLess;
-
-    case '>':
-        lexeme[i++] = code[pointer++];
-        if (code[pointer] == '=') {
-            lexeme[i++] = code[pointer++];
-            return typeMoreOrEq;
-        }
-        return typeMore;
-
-    case '!':
-        lexeme[i++] = code[pointer++];
-        if (code[pointer] == '=') {
-            lexeme[i++] = code[pointer++];
-            return typeUnEq;
-        }
-        return typeNo;
-
+        return typeEval; // Возвращаем тип оператора присваивания
     case '|':
-        lexeme[i++] = code[pointer++];
-        if (code[pointer] == '|') {
+        if (code[pointer] == '|')
+        {
             lexeme[i++] = code[pointer++];
-            return typeOr;
+            return typeOr; // Возвращаем тип оператора логического ИЛИ
         }
         break;
-
     case '&':
-        lexeme[i++] = code[pointer++];
-        if (code[pointer] == '&') {
+        if (code[pointer] == '&')
+        {
             lexeme[i++] = code[pointer++];
-            return typeAnd;
+            return typeAnd; // Возвращаем тип оператора логического И
         }
         break;
-
+    case '!':
+        if (code[pointer] == '=')
+        {
+            lexeme[i++] = code[pointer++];
+            return typeUnEq; // Возвращаем тип оператора неравенства
+        }
+        return typeNo; // Возвращаем тип логического отрицания
+    case '<':
+        if (code[pointer] == '=')
+        {
+            lexeme[i++] = code[pointer++];
+            return typeLessOrEq; // Возвращаем тип оператора меньше или равно
+        }
+        return typeLess; // Возвращаем тип оператора меньше
+    case '>':
+        if (code[pointer] == '=')
+        {
+            lexeme[i++] = code[pointer++];
+            return typeMoreOrEq; // Возвращаем тип оператора больше или равно
+        }
+        return typeMore; // Возвращаем тип оператора больше
     default:
-        lexeme[i++] = code[pointer++];
-        PrintError("Wrong symbol", lexeme);
-        return typeError;
+        break; // По умолчанию ничего не делаем
     }
-    PrintError("Wrong symbol", lexeme);
-    return typeError; // Возврат ошибки при нераспознании токена
+
+    // Обработка некорректных символов
+    errorMessage = "Wrong symbol";
+    PrintError(errorMessage, lexeme);
+    pointer++; // Продвигаем указатель
+    return typeError; // Возвращаем тип ошибки
+}
+
+// Обработка чисел с плавающей точкой
+int Scanner::parseNumber(TypeLex lexeme, int& i) {
+    while (isNumber)
+        if (i < MAX_FLT - 1)
+            lexeme[i++] = code[pointer++]; // Запись чисел
+        else
+            pointer++; // Пропуск лишних символов
+    if (i >= MAX_FLT - 1)
+    {
+        PrintError("Overflow: maximum lexeme size exceeded while processing a number", lexeme);
+        for (int i = 0; i < MAX_FLT; i++)
+            lexeme[i] = 0; // Сброс лексемы
+        i = 0;
+        return typeError; // Возвращаем тип ошибки
+    }
+    return constDouble; // Возвращаем тип числа с плавающей точкой
+}
+
+// Обработка экспоненты
+int Scanner::handleExponent(TypeLex lexeme, int& i) {
+    // Обработка знака после 'E'/'e'
+    if ((code[pointer] == '+') || (code[pointer] == '-'))
+    {
+        lexeme[i++] = code[pointer++];
+        if (isNumber)
+        {
+            if (i < MAX_FLT - 1)
+                lexeme[i++] = code[pointer++]; // Запись числа после экспоненты
+            else
+                pointer++;
+            if (i >= MAX_FLT - 1)
+            {
+                PrintError("Overflow: maximum lexeme size exceeded while processing an exponent", lexeme);
+                for (int i = 0; i < MAX_FLT; i++)
+                    lexeme[i] = 0; // Сброс лексемы
+                i = 0;
+                return typeError; // Возвращаем тип ошибки
+            }
+            return parseNumber(lexeme, i); // Парсим число
+        }
+        else
+        {
+            PrintError("Wrong const: expected a number after exponent sign", lexeme);
+            return typeError; // Ошибка, если после знака экспоненты нет числа
+        }
+    }
+    else
+    {
+        lexeme[i++] = code[pointer++];
+        return parseNumber(lexeme, i); // Парсим число без знака
+    }
+}
+
+// Обработка чисел с плавающей точкой
+int Scanner::handleFloatingPoint(TypeLex lexeme, int& i) {
+    while (isNumber)
+        if (i < MAX_FLT - 1)
+            lexeme[i++] = code[pointer++]; // Запись цифр после точки
+        else
+            pointer++; // Пропуск лишних символов
+    if (i >= MAX_FLT - 1)
+    {
+        PrintError("Overflow: maximum lexeme size exceeded while processing a floating point number", lexeme);
+        for (int i = 0; i < MAX_FLT; i++)
+            lexeme[i] = 0; // Сброс лексемы
+        i = 0;
+        return typeError; // Возвращаем тип ошибки
+    }
+    // Обработка экспоненты
+    if ((code[pointer] == 'E') || (code[pointer] == 'e'))
+    {
+        lexeme[i++] = code[pointer++];
+        return handleExponent(lexeme, i); // Переход к обработке экспоненты
+    }
+    PrintError("Wrong const: expected 'E' or 'e' for exponential notation", lexeme);
+    return typeError; // Ошибка, если нет 'E' или 'e'
 }
