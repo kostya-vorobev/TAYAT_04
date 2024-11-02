@@ -1,4 +1,4 @@
-﻿#include "Scanner.h"
+﻿#include "SyntaxAnalyzer.h"
 
 int main()
 {
@@ -8,15 +8,30 @@ int main()
     FILE* file;
     errno_t err = fopen_s(&file, fileName, "r");
     if (err != 0 || file == NULL) {
-        std::cout << "Не удалось открыть файл: " << fileName << std::endl;
+        std::cout << "Can't open file: " << fileName << std::endl;
         return 1;
     }
 
-    // Создание объекта Scanner
+    
+        Scanner *scaner = new Scanner(file);
+        SyntaxAnalyzer* diagram = new SyntaxAnalyzer(scaner);
+
+        diagram->program();
+
+        int type; 
+        TypeLex lex;
+        type = scaner->Scan(lex);
+        if (type == typeEnd)
+            std::cout << "OK" << std::endl;
+        else
+            std::cout << "ERROR" << std::endl;
+        
+    
+    /*// Создание объекта Scanner
     Scanner scanner(file);
 
     // Пример использования метода Scan
-    char lexeme[MAX_LEX];  // Изменено на char, чтобы соответствовать типу лексем
+    char lexeme[MAX_LEX]; 
     while (true) {
         int result = scanner.Scan(lexeme);
         if (result == typeEnd) {
@@ -24,9 +39,10 @@ int main()
         }
 
         // Обработка результата сканирования
-        std::cout << "Лексема: " << lexeme << "\t Тип: " << result << std::endl;
+        std::cout << "Lexeme: " << lexeme << "\t type: " << result << std::endl;
     }
     
-    fclose(file); // Закрытие файла в конце
+    fclose(file); // Закрытие файла в конце*/
+    system("pause");
     return 0;
 }

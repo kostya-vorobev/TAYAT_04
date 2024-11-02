@@ -140,11 +140,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="SyntaxAnalyzer.cpp" />
     <ClCompile Include="TAYAT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LEXEME.h" />
     <ClInclude Include="Scanner.h" />
+    <ClInclude Include="SyntaxAnalyzer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

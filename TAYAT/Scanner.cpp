@@ -33,6 +33,7 @@ void Scanner::GetData(FILE* in)
         }
     }
     code[i] = '\0'; // Завершение строки
+    code[i+1] = '\0'; // Завершение строки
     fclose(in);     // Закрытие файла
 }
 
@@ -43,6 +44,7 @@ void Scanner::PrintError(string errorMessage, string lexeme)
         cout << "Error: " << errorMessage << endl; // Вывод ошибки без лексемы
     else
         cout << "Find: " << lexeme << " . Error: " << errorMessage << endl; // Ошибка с лексемой
+    //exit(1);
 }
 
 // Макросы для определения различных символов
@@ -52,7 +54,7 @@ void Scanner::PrintError(string errorMessage, string lexeme)
 
 // Массив ключевых слов для сканера
 TypeLex Keyword[MAX_KEYW] = { "const", "short", "long", "int", "double", "switch", "case",
-"break", "default", "return", "class", "main" };
+"break", "default", "return", "class", "main", "new"};
 
 // Индексы для ключевых слов
 int IndexKW[MAX_KEYW] = { typeConst, typeShort, typeLong, typeInt, typeDouble,

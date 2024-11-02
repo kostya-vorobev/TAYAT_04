@@ -9,7 +9,7 @@ using namespace std;
 #define MAX_LEX 100    // Максимальная длина лексемы
 #define MAX_NUM 25    // Максимальная длина лексемы
 #define MAX_FLT 35    // Максимальная длина лексемы
-#define MAX_KEYW 12    // Максимальное количество ключевых слов
+#define MAX_KEYW 13    // Максимальное количество ключевых слов
 
 typedef char TypeMod[MAX_TEXT];  // Тип для хранения текста (модуля)
 typedef char TypeLex[MAX_LEX];   // Тип для хранения лексем
@@ -27,6 +27,7 @@ typedef char TypeLex[MAX_LEX];   // Тип для хранения лексем
 #define typeReturn 20 
 #define typeClass 21 
 #define typeMain 22 
+#define typeNew 23
 
 // Коды для идентификаторов и констант
 #define typeID 1          // Идентификатор
