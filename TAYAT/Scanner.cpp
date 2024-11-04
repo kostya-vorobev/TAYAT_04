@@ -58,7 +58,7 @@ TypeLex Keyword[MAX_KEYW] = { "const", "short", "long", "int", "double", "switch
 
 // Индексы для ключевых слов
 int IndexKW[MAX_KEYW] = { typeConst, typeShort, typeLong, typeInt, typeDouble,
-typeSwitch, typeCase, typeBreak, typeDefault, typeReturn, typeClass, typeMain };
+typeSwitch, typeCase, typeBreak, typeDefault, typeReturn, typeClass, typeMain, typeNew };
 
 // Основной метод сканирования лексем
 int Scanner::Scan(TypeLex lexeme)

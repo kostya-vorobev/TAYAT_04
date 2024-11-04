@@ -84,7 +84,7 @@ void SyntaxAnalyzer::description() {
 		function();
 	}
 	type = look_forward(1);
-	if (type == typeInt || type == typeShort || type == typeLong ||  type == typeDouble || type == typeID) {
+	if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble || type == typeID) {
 		data();
 		return;
 	}
@@ -92,8 +92,17 @@ void SyntaxAnalyzer::description() {
 		Tclass();
 		return;
 	}
-	
+	if (type == typeConst) {
+		Const();
+		return;
+	}
+
 	type = scan(lex);
+	if (type == typeEnd) {
+		type = scan(lex);
+		return;
+		
+	}
 	scaner->PrintError("Expected void or type got", lex);
 }
 
@@ -108,6 +117,24 @@ void SyntaxAnalyzer::data() {
 	type_ = scan(lex);
 	if (type_ != typeSemicolon)
 		scaner->PrintError("Expected ; got", lex);
+}
+
+void SyntaxAnalyzer::Const()
+{
+	TypeLex lex;
+	int type;
+	type = scan(lex);
+
+	if (type != typeConst)
+		scaner->PrintError("Waiting const", lex);
+
+	type = look_forward(1);
+
+	if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble)
+		data();
+
+
+
 }
 
 void SyntaxAnalyzer::function() {
@@ -150,26 +177,6 @@ void SyntaxAnalyzer::type() {
 		scaner->PrintError("Expected type (int, short, long, double) got", lex);
 }
 
-void SyntaxAnalyzer::element() {
-	/*
-	type_lex lex;
-	int type;
-	type = look_forward(1);
-	int type2 = look_forward(2);
-	if (type == typeID && type2 != TLeftSquareBracket) {
-		variable();
-		return;
-	}
-	if (type == typeID && type2 == TLeftSquareBracket) {
-		array();
-		return;
-	}
-	else {
-		type = scaner->scaner(lex);
-		scaner->print_error("Expected element got", lex);
-	}*/
-}
-
 void SyntaxAnalyzer::list() {
 	TypeLex lex;
 	int type, pointer;
@@ -191,23 +198,29 @@ void SyntaxAnalyzer::variable() {
 	int type;
 
 	type = look_forward(1);
-
 	if (type != typeID) {
 		type = scan(lex);
 		scaner->PrintError("Expected identificator got", lex);
 	}
+	else if (look_forward(2) == typePoint) {
+		member_access();
+	}
+
+
 
 	int pointer = scaner->getPointer();
 	type = scan(lex);
 	scaner->putPointer(pointer);
 
 	type = look_forward(2);
+
 	if (type == typeEval) {
 		assignment();
 		return;
 	}
 	type = scan(lex);
 }
+
 
 void SyntaxAnalyzer::assignment() {
 	TypeLex lex;
@@ -218,11 +231,29 @@ void SyntaxAnalyzer::assignment() {
 		scaner->PrintError("Expected identificator got", lex);
 	}
 
+	type = look_forward(1);
+
+
+	if (look_forward(1) == typePoint) {
+		member_access();
+	}
+
 	type = scan(lex);
+
 	if (type != typeEval)
 		scaner->PrintError("Expected = got", lex);
-
-	expression();
+	if (look_forward(1) == typeNew)
+	{
+		type = scan(lex);
+		function_call();
+	}
+	else {
+		if (look_forward(2) == typePoint) {
+			member_access();
+		}
+		expression();
+		
+	}
 }
 
 void SyntaxAnalyzer::expression() {
@@ -242,15 +273,23 @@ void SyntaxAnalyzer::composite_operator() {
 	TypeLex lex;
 	int type;
 
-	type = scan(lex);
-	if (type != typeLeftBrace)
-		scaner->PrintError("Expected { got", lex);
+	
+	type = look_forward(1);
 
-	operators_and_descriptions();
+	if (type == typeConst)
+		Const();
+	else
+	{
+		type = scan(lex);
+		if (type != typeLeftBrace)
+			scaner->PrintError("Expected { got", lex);
 
-	type = scan(lex);
-	if (type != typeRightBrace)
-		scaner->PrintError("Expected } got", lex);
+			operators_and_descriptions();
+
+		type = scan(lex);
+		if (type != typeRightBrace)
+			scaner->PrintError("Expected } got", lex);
+	}
 }
 
 void SyntaxAnalyzer::operators_and_descriptions() {
@@ -259,12 +298,96 @@ void SyntaxAnalyzer::operators_and_descriptions() {
 
 	type = look_forward(1);
 	while (type != typeRightBrace) {
-		if (type == typeInt || type == typeShort || type == typeLong ||  type == typeDouble) {
+		if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble || (type == typeID && look_forward(2) != typeEval)) {
 			data();
 		}
 		else operator_();
+		if (type == typeBreak) {
+			scan(lex);
+			scan(lex);
+			return;
+		}
 		type = look_forward(1);
 
+	}
+}
+
+void SyntaxAnalyzer::Switch() {
+	TypeLex lex;
+	int type;
+
+	type = scan(lex);
+	if (type != typeSwitch)
+		scaner->PrintError("Expected 'switch' keyword", lex);
+
+	type = scan(lex);
+	if (type != typeLeftBracket)
+		scaner->PrintError("Expected '('", lex);
+
+	expression();
+
+	type = scan(lex);
+	if (type != typeRightBracket)
+		scaner->PrintError("Expected ')'", lex);
+
+	type = scan(lex);
+	if (type != typeLeftBrace)
+		scaner->PrintError("Expected '{'", lex);
+
+	type = look_forward(1);
+	while (type != typeRightBrace) {
+		if (type == typeCase) {
+			do {
+			} while (scan(lex) != typeColon);
+			operators_and_descriptions();
+		}
+		else if (type == typeDefault) {
+			type = scan(lex);
+			if (look_forward(1) == typeColon) {
+				scan(lex);
+			}
+			operators_and_descriptions();
+		}
+		type = look_forward(1);
+	}
+
+	type = scan(lex);
+	if (type != typeRightBrace)
+		scaner->PrintError("Expected '}'", lex);
+}
+
+void SyntaxAnalyzer::member_access() {
+	TypeLex lex;
+	int type;
+
+	type = scan(lex);
+	if (type != typeID) {
+		scaner->PrintError("Expected identifier", lex);
+	}
+
+	while (true) {
+		type = look_forward(1);  
+		if (type != typePoint) {
+			break; 
+		}
+
+		scan(lex); 
+
+		type = look_forward(1); 
+		if (type != typeID) {
+			scaner->PrintError("Expected identifier after '.'", lex);
+		}
+		type = look_forward(1);
+		if (look_forward(2) == typeLeftBracket) {
+			function_call(); 
+		}
+	}
+	type = look_forward(1);
+	if (look_forward(1) == typeEval) {
+		assignment(); 
+	}
+	else {
+		expression(); 
 	}
 }
 
@@ -277,7 +400,7 @@ void SyntaxAnalyzer::return_statement() {
 		scaner->PrintError("Expected return got", lex);
 	}
 
-	expression();  // Обработка выражения после return
+	expression();
 
 	type = scan(lex);
 	if (type != typeSemicolon) {
@@ -291,7 +414,7 @@ void SyntaxAnalyzer::operator_() {
 
 	type = look_forward(1);
 	if (type == typeReturn) {
-		return_statement();  // Обработка return
+		return_statement();
 		return;
 	}
 
@@ -300,8 +423,17 @@ void SyntaxAnalyzer::operator_() {
 		return;
 	}
 
-	if (type == typeSwitch) {//////////////////////////////
-		condition();
+	if (type == typeSwitch) {
+		Switch();
+		return;
+	}
+
+	if (type == typeBreak) {
+		return;
+	}
+
+	if (type == typeConst) {
+		composite_operator();
 		return;
 	}
 
@@ -311,6 +443,7 @@ void SyntaxAnalyzer::operator_() {
 	}
 
 
+
 	int type2 = look_forward(2);
 	if (type == typeID && type2 == typeLeftBracket) {
 		function_call();
@@ -318,7 +451,7 @@ void SyntaxAnalyzer::operator_() {
 	}
 	if (type == typeID) {
 		type2 = look_forward(2);
-		if (type2 == typeEval) {  // Проверка на присваивание
+		if (type2 == typeEval) { 
 			assignment();
 			type = scan(lex);
 			if (type != typeSemicolon)
@@ -328,20 +461,23 @@ void SyntaxAnalyzer::operator_() {
 	}
 	if (type == typeID) {
 		type2 = look_forward(3);
-		if (type2 == typeEval) {  // Проверка на присваивание
+		if (type2 == typeEval) { 
 			assignment();
 			type = scan(lex);
 			if (type != typeSemicolon)
 				scaner->PrintError("Expected ';' got", lex);
 			return;
 		}
-		else if (type2 == typeNew) {  // Обработка создания нового объекта
-			type = scan(lex);  // Пропустим 'new'
-			function_call();   // Обработка вызова конструктора
+		else if (type2 == typeNew) { 
+			type = scan(lex);  
+			function_call();   
 			return;
 		}
 	}
 
+	if (type == typeRightBracket) {
+		return;
+	}
 
 	type = scan(lex);
 	scaner->PrintError("Expected operator got", lex);
@@ -352,21 +488,24 @@ void SyntaxAnalyzer::function_call() {
 	int type;
 
 	type = scan(lex);
-	if (type != typeID)
-		scaner->PrintError("Expected identificator got", lex);
+	if (type != typeID) {
+		scaner->PrintError("Expected identifier got", lex);
+	}
 
+	if (look_forward(1) == typePoint) {
+		member_access();
+		return;
+	}
 
 	type = scan(lex);
-	if (type != typeLeftBracket)
+	if (type != typeLeftBracket) {
 		scaner->PrintError("Expected ( got", lex);
+	}
 
 	type = scan(lex);
-	if (type != typeRightBracket)
+	if (type != typeRightBracket) {
 		scaner->PrintError("Expected ) got", lex);
-
-	type = scan(lex);
-	if (type != typeSemicolon)
-		scaner->PrintError("Expected ; got", lex);
+	}
 }
 
 void SyntaxAnalyzer::condition() {
@@ -390,11 +529,6 @@ void SyntaxAnalyzer::condition() {
 	operator_();
 
 	type = look_forward(1);
-	/*if (type == TElse)
-	{
-		type = scan(lex);
-		operator_();
-	}*/
 }
 
 void SyntaxAnalyzer::comparison() {
@@ -439,16 +573,25 @@ void SyntaxAnalyzer::multiplier() {
 
 void SyntaxAnalyzer::unary_operation() {
 	TypeLex lex;
-	int type = look_forward(1);
+	int type;
 
-	if (type == typePlus || type == typeMinus)
-	{
-		type = scan(lex);
+	elementary_expression();
+
+	type = look_forward(1);
+
+	while (type == typePlus || type == typeMinus) {
+		scan(lex);
+		type = look_forward(2);
+		if (type == typePoint) {
+			member_access();
+			return;
+		}
 		elementary_expression();
+		type = look_forward(1);
 	}
-	else
-		elementary_expression();
 }
+
+
 
 
 void SyntaxAnalyzer::elementary_expression() {
@@ -467,10 +610,15 @@ void SyntaxAnalyzer::elementary_expression() {
 			scaner->PrintError("Expected ')' got", lex);
 		return;
 	}
-	else if (type == typeID) {  // Добавьте обработку ID
+	else if (type == typeID) { 
 		type = scan(lex);
 		return;
 	}
-
-	scaner->PrintError("Expected expression got", lex);
+	else if (type == typePoint) { 
+		type = scan(lex);
+		return;
+	}
+	if (type == typeEnd) { 
+		return;
+	}
 }

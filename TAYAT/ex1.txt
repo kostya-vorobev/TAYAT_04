@@ -14,5 +14,12 @@ int main()
 {
 	int c = 10;
 	Lab4 lab = new Lab4();
-	int d = lab.Sum()+c;
+	const int d = lab.Sum()+lab.Sum();
+	switch(1){
+		case 1:
+			int f = a + b;
+			break;
+		default:
+			break;
+	};
 }

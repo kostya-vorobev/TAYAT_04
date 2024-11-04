@@ -12,7 +12,6 @@ private:
 	void function();					// Ôóíêöèÿ
 	void return_statement();
 	void type();						// Òèï
-	void element();
 	void list();						// Ñïèñîê
 	void variable();					// Ïåðåìåííàÿ
 	void assignment();					// Ïðèñâàèâàíèå
@@ -27,7 +26,9 @@ private:
 	void multiplier();					// Ìíîæèòåëü
 	void unary_operation();				// Óíàðíàÿ îïåðàöèÿ
 	void elementary_expression();		// Ýëåìåíòàðíîå âûðàæåíèå
-	int evaluate_expression();			// Âû÷èñëèòü âûðàæåíèå
+	void member_access();
+	void Switch();
+	void Const();
 	int look_forward(int pointer);
 	int scan(TypeLex lex);
 public:
