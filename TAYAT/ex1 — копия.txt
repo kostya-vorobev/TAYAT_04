@@ -6,7 +6,7 @@ class Lab4
 	{
 		a = 1;
 		b = 2;
-		return a+b;
+		return a+b;123
 	}
 };
 	//комментарий
@@ -14,13 +14,12 @@ int main()
 {
 	int c = 10;
 	Lab4 lab = new Lab4();
-	const int d = lab.Sum()+lab.Sum();
-	switch(lab.Sum()){
+	const int d = lab.a+lab.Sum();
+	switch(1){
 		case 1:
 			int f = a + b;
 			break;
 		default:
 			break;
 	};
-	return 0;
 }

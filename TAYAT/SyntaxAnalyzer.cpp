@@ -163,7 +163,12 @@ void SyntaxAnalyzer::function() {
 
 	operators_and_descriptions();
 
-
+	type = look_forward(1);
+	if (type != typeReturn)
+		scaner->PrintError("Expected return got", lex);
+	
+	return_statement();
+	
 	type = scan(lex);
 	if (type != typeRightBrace)
 		scaner->PrintError("Expected } got", lex);
@@ -307,6 +312,9 @@ void SyntaxAnalyzer::operators_and_descriptions() {
 			scan(lex);
 			return;
 		}
+		if (type == typeReturn) {
+			return;
+		}
 		type = look_forward(1);
 
 	}
@@ -414,7 +422,6 @@ void SyntaxAnalyzer::operator_() {
 
 	type = look_forward(1);
 	if (type == typeReturn) {
-		return_statement();
 		return;
 	}
 
@@ -610,7 +617,12 @@ void SyntaxAnalyzer::elementary_expression() {
 			scaner->PrintError("Expected ')' got", lex);
 		return;
 	}
-	else if (type == typeID) { 
+	else if (type == typeID) {
+		if (look_forward(2) == typePoint)
+		{
+			member_access();
+			return;
+		}
 		type = scan(lex);
 		return;
 	}
