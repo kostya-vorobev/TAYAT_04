@@ -32,9 +32,10 @@ private:
 	int look_forward(int pointer);
 	int scan(TypeLex lex);
 public:
+
 	SyntaxAnalyzer(Scanner* scaner) {
 		this->scaner = scaner;
-	}
+	};
 	~SyntaxAnalyzer() {}
 	void program();						// Ïðîãðàììà
 

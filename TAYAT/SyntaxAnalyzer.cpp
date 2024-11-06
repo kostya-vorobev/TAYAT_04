@@ -1,6 +1,7 @@
 #include "SyntaxAnalyzer.h"
 
 int SyntaxAnalyzer::look_forward(int pos) {
+	int _ = 0;
 	TypeLex lex;
 	int saved_pointer = scaner->getPointer();
 	int next_type;
@@ -18,7 +19,7 @@ void SyntaxAnalyzer::program() {
 	TypeLex lex;
 	int type;
 	type = look_forward(1);
-	while (type == typeInt || type == typeShort || type == typeLong || type == typeDouble || type == typeClass) {
+	while (type == typeInt || type == typeShort || type == typeLong || type == typeDouble || type == typeClass || type == typeID) {
 		description();
 		type = look_forward(1);
 	}
@@ -69,7 +70,8 @@ void SyntaxAnalyzer::classDesc()
 	TypeLex lex;
 	int type;
 	type = look_forward(3);
-
+	if (look_forward(1) == typeID && look_forward(2) == typeLeftBracket && look_forward(3) == typeRightBracket && look_forward(4) == typeLeftBrace)
+		function();
 	if (type == typeLeftBracket) {
 		function();
 	}
@@ -101,7 +103,7 @@ void SyntaxAnalyzer::description() {
 	if (type == typeEnd) {
 		type = scan(lex);
 		return;
-		
+
 	}
 	scaner->PrintError("Expected void or type got", lex);
 }
@@ -163,12 +165,12 @@ void SyntaxAnalyzer::function() {
 
 	operators_and_descriptions();
 
-	type = look_forward(1);
+	/*type = look_forward(1);
 	if (type != typeReturn)
 		scaner->PrintError("Expected return got", lex);
-	
-	return_statement();
-	
+
+	return_statement();*/
+
 	type = scan(lex);
 	if (type != typeRightBrace)
 		scaner->PrintError("Expected } got", lex);
@@ -201,7 +203,6 @@ void SyntaxAnalyzer::list() {
 void SyntaxAnalyzer::variable() {
 	TypeLex lex;
 	int type;
-
 	type = look_forward(1);
 	if (type != typeID) {
 		type = scan(lex);
@@ -257,7 +258,7 @@ void SyntaxAnalyzer::assignment() {
 			member_access();
 		}
 		expression();
-		
+
 	}
 }
 
@@ -278,7 +279,7 @@ void SyntaxAnalyzer::composite_operator() {
 	TypeLex lex;
 	int type;
 
-	
+
 	type = look_forward(1);
 
 	if (type == typeConst)
@@ -289,7 +290,7 @@ void SyntaxAnalyzer::composite_operator() {
 		if (type != typeLeftBrace)
 			scaner->PrintError("Expected { got", lex);
 
-			operators_and_descriptions();
+		operators_and_descriptions();
 
 		type = scan(lex);
 		if (type != typeRightBrace)
@@ -303,7 +304,7 @@ void SyntaxAnalyzer::operators_and_descriptions() {
 
 	type = look_forward(1);
 	while (type != typeRightBrace) {
-		if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble || (type == typeID && look_forward(2) != typeEval)) {
+		if ((type == typeInt || type == typeShort || type == typeLong || type == typeDouble || (type == typeID && look_forward(2) != typeEval && look_forward(2) != typePoint)) && look_forward(3) != typeLeftBracket) {
 			data();
 		}
 		else operator_();
@@ -331,7 +332,11 @@ void SyntaxAnalyzer::Switch() {
 	type = scan(lex);
 	if (type != typeLeftBracket)
 		scaner->PrintError("Expected '('", lex);
-
+	type = look_forward(1);
+	if (type == typeRightBracket) {
+		scaner->PrintError("Expected 'not expression'", lex);
+		return;
+	}
 	expression();
 
 	type = scan(lex);
@@ -347,13 +352,19 @@ void SyntaxAnalyzer::Switch() {
 		if (type == typeCase) {
 			do {
 			} while (scan(lex) != typeColon);
-			operators_and_descriptions();
+			if (look_forward(1) != typeCase)
+				operators_and_descriptions();
 		}
 		else if (type == typeDefault) {
 			type = scan(lex);
 			if (look_forward(1) == typeColon) {
 				scan(lex);
 			}
+			if (look_forward(1) != typeCase)
+				operators_and_descriptions();
+		}
+		else if (type == typeBreak)
+		{
 			operators_and_descriptions();
 		}
 		type = look_forward(1);
@@ -374,28 +385,33 @@ void SyntaxAnalyzer::member_access() {
 	}
 
 	while (true) {
-		type = look_forward(1);  
+		type = look_forward(1);
 		if (type != typePoint) {
-			break; 
+			break;
 		}
 
-		scan(lex); 
+		scan(lex);
 
-		type = look_forward(1); 
+		type = look_forward(1);
+
+		if (type == typeEval) {
+			expression();
+		}
+
 		if (type != typeID) {
 			scaner->PrintError("Expected identifier after '.'", lex);
 		}
 		type = look_forward(1);
 		if (look_forward(2) == typeLeftBracket) {
-			function_call(); 
+			function_call();
 		}
 	}
 	type = look_forward(1);
 	if (look_forward(1) == typeEval) {
-		assignment(); 
+		assignment();
 	}
 	else {
-		expression(); 
+		expression();
 	}
 }
 
@@ -422,6 +438,7 @@ void SyntaxAnalyzer::operator_() {
 
 	type = look_forward(1);
 	if (type == typeReturn) {
+		return_statement();
 		return;
 	}
 
@@ -451,14 +468,34 @@ void SyntaxAnalyzer::operator_() {
 
 
 
-	int type2 = look_forward(2);
-	if (type == typeID && type2 == typeLeftBracket) {
-		function_call();
-		return;
+	int type2;
+
+	if (type == typeID) {
+		type2 = look_forward(2);
+		if (type2 == typePoint) {
+			member_access();
+			return;
+		}
+	}
+
+	if (type == typeID) {
+		type2 = look_forward(2);
+		if (type2 == typeLeftBracket) {
+			function_call();
+			return;
+		}
+	}
+
+	if (look_forward(2) == typeID) {
+		type2 = look_forward(3);
+		if (type2 == typeLeftBracket) {
+			function();
+			return;
+		}
 	}
 	if (type == typeID) {
 		type2 = look_forward(2);
-		if (type2 == typeEval) { 
+		if (type2 == typeEval) {
 			assignment();
 			type = scan(lex);
 			if (type != typeSemicolon)
@@ -468,16 +505,16 @@ void SyntaxAnalyzer::operator_() {
 	}
 	if (type == typeID) {
 		type2 = look_forward(3);
-		if (type2 == typeEval) { 
+		if (type2 == typeEval) {
 			assignment();
 			type = scan(lex);
 			if (type != typeSemicolon)
 				scaner->PrintError("Expected ';' got", lex);
 			return;
 		}
-		else if (type2 == typeNew) { 
-			type = scan(lex);  
-			function_call();   
+		else if (type2 == typeNew) {
+			type = scan(lex);
+			function_call();
 			return;
 		}
 	}
@@ -487,7 +524,7 @@ void SyntaxAnalyzer::operator_() {
 	}
 
 	type = scan(lex);
-	scaner->PrintError("Expected operator got", lex);
+	//scaner->PrintError("Expected operator got", lex);
 }
 
 void SyntaxAnalyzer::function_call() {
@@ -626,11 +663,11 @@ void SyntaxAnalyzer::elementary_expression() {
 		type = scan(lex);
 		return;
 	}
-	else if (type == typePoint) { 
+	else if (type == typePoint) {
 		type = scan(lex);
 		return;
 	}
-	if (type == typeEnd) { 
+	if (type == typeEnd) {
 		return;
 	}
 }

@@ -1,26 +1,26 @@
-class Lab4 
-{
-	int a;
-	int b;
-	int Sum()
-	{
-		a = 1;
-		b = 2;
-		return a+b;
+
+int g()
+{{}{}{{}}return f;}
+int _=((-(-9)));
+class s{
+	int d(){
+		int s(){
+		}
 	}
 };
-	//комментарий
-int main()
+d f;
+class d{}; 
+int main(){
+s.d = 21;
+s.s();
+//return 0;
+switch(6)
 {
-	int c = 10;
-	Lab4 lab = new Lab4();
-	const int d = lab.Sum()+lab.Sum();
-	switch(lab.Sum()){
-		case 1:
-			int f = a + b;
-			break;
-		default:
-			break;
-	};
-	return 0;
+case 6:{{}}{}{}
+case 7:
+default:
+case 8: break; break;
 }
+return 0;
+}
+

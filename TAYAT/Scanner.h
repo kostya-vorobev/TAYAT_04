@@ -5,6 +5,7 @@
 
 #include "LEXEME.h"
 #include <iostream>
+#include <vector>;
 using namespace std;
 
 class Scanner
@@ -51,6 +52,9 @@ private:
     int handleFloatingPoint(TypeLex lexeme, int& i);
 
     int handleExponent(TypeLex lexeme, int& i);
+
+	vector<int> lineBreakPositions;
+
 };
 
 #endif

@@ -24,8 +24,14 @@ void Scanner::GetData(FILE* in)
     while (!feof(in))
     {
         fscanf(in, "%c", &tmp); // Чтение одного символа
-        if (!feof(in))
+        if (!feof(in)) {
+            if (tmp == '\n') {
+                lineBreakPositions.push_back(i);
+            }
             code[i++] = tmp; // Сохранение символа в массив
+
+            
+        }
         if (i > MAX_TEXT)
         {
             PrintError("Error in source file", ""); // Ошибка, если превышен максимальный размер текста
@@ -40,16 +46,29 @@ void Scanner::GetData(FILE* in)
 // Вывод ошибки
 void Scanner::PrintError(string errorMessage, string lexeme)
 {
-    if (lexeme[0] == 0)
-        cout << "Error: " << errorMessage << endl; // Вывод ошибки без лексемы
-    else
-        cout << "Find: " << lexeme << " . Error: " << errorMessage << endl; // Ошибка с лексемой
-    //exit(1);
+    int line = 1;
+    int pos = pointer;
+    for (size_t i = 0; i < lineBreakPositions.size(); ++i) {
+        if (lineBreakPositions[i] < pointer) {
+            line++;
+        }
+        else {
+            pos = pointer - (i == 0 ? 0 : lineBreakPositions[i - 1] + 1);
+            break;
+        }
+    }
+    if (lexeme.empty()) {
+        cout << "Error: " << errorMessage << " at line " << line << ", position " << pos << endl;
+    }
+    else {
+        cout << "Find: " << lexeme << " . Error: " << errorMessage << " at line " << line << ", position " << pos << endl;
+    }
+    exit(1);
 }
 
 // Макросы для определения различных символов
 #define isNumber (code[pointer] <= '9') && (code[pointer] >= '0')
-#define isLetterLower (code[pointer] >= 'a') && (code[pointer] <= 'z')
+#define isLetterLower ((code[pointer] >= 'a') && (code[pointer] <= 'z') || (code[pointer] == '_'))
 #define isLetterUpper (code[pointer] >= 'A') && (code[pointer] <= 'Z')
 
 // Массив ключевых слов для сканера
