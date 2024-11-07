@@ -174,6 +174,7 @@ void SyntaxAnalyzer::function() {
 	type = scan(lex);
 	if (type != typeRightBrace)
 		scaner->PrintError("Expected } got", lex);
+
 }
 
 void SyntaxAnalyzer::type() {
@@ -279,7 +280,6 @@ void SyntaxAnalyzer::composite_operator() {
 	TypeLex lex;
 	int type;
 
-
 	type = look_forward(1);
 
 	if (type == typeConst)
@@ -301,7 +301,7 @@ void SyntaxAnalyzer::composite_operator() {
 void SyntaxAnalyzer::operators_and_descriptions() {
 	TypeLex lex;
 	int type;
-
+	int loops();
 	type = look_forward(1);
 	while (type != typeRightBrace) {
 		if ((type == typeInt || type == typeShort || type == typeLong || type == typeDouble || (type == typeID && look_forward(2) != typeEval && look_forward(2) != typePoint)) && look_forward(3) != typeLeftBracket) {
@@ -489,10 +489,16 @@ void SyntaxAnalyzer::operator_() {
 	if (look_forward(2) == typeID) {
 		type2 = look_forward(3);
 		if (type2 == typeLeftBracket) {
-			function();
+			scan(lex);
+			function_call();
+			if (look_forward(1) == typeLeftBrace) {
+				scan(lex);
+				scaner->PrintError("Expected ';' got", lex);
+			}
 			return;
 		}
 	}
+
 	if (type == typeID) {
 		type2 = look_forward(2);
 		if (type2 == typeEval) {

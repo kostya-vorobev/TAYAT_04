@@ -4,7 +4,7 @@ int g()
 int _=((-(-9)));
 class s{
 	int d(){
-		int s(){
+		int s();{
 		}
 	}
 };
