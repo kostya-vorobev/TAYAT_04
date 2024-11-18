@@ -22,7 +22,8 @@ private:
 	void composite_operator();			
 	void operators_and_descriptions();	
 	void operator_();					
-	void function_call();				
+	void function_call();
+	void function_call(SemanticTree* semantTree);
 	void condition();					
 	void comparison();					
 	void addendum();					

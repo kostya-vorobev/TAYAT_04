@@ -65,9 +65,9 @@ SemanticTree* SemanticTree::getRight()
 	return this->right;
 }
 
-Node* SemanticTree::getNode()
+SemanticTree* SemanticTree::getNode()
 {
-	return this->node;
+	return this->node->classPointer;
 }
 
 SemanticTree* SemanticTree::findUp(SemanticTree* from, string id)
@@ -298,7 +298,7 @@ string SemanticTree::getSelfId()
 
 bool SemanticTree::isSelfInit()
 {
-	return node->flagInit == 1;
+	return node->flagInit;
 }
 
 bool SemanticTree::canBeAdded(TYPE_DATA type1, TYPE_DATA type2) {

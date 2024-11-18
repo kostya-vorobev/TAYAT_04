@@ -10,14 +10,15 @@ class Lab4{
 
 int Sums()
 {
-	int b = 3;
+	int b;
 }
 
 	//комментарий
 int main()
 {
-	int c = 10;
-	const int s = 10;
+	//int c;
+	const int s;
 	Lab4 lab;
-	c = lab.Sum() + 1;
+	b = lab.a;
+	int c = lab.a + Sum() + 100 -(+50);
 }

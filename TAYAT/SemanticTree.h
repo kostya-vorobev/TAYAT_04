@@ -55,7 +55,7 @@ public:
 
 	SemanticTree* getLeft();
 	SemanticTree* getRight();
-	Node* getNode();
+	SemanticTree* getNode();
 	TYPE_OBJECT getSelfObjectType();
 	SemanticTree* getClassPointer();
 	TYPE_DATA getSelfDataType();

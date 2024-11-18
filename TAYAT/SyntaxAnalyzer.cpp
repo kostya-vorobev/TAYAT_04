@@ -274,17 +274,13 @@ void SyntaxAnalyzer::variable() {
 	if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble)
 	{
 		scan(lex);
-
+		newNode->objectType = OBJ_VAR;
 	}
 	else
 		if (type == typeID) {
 			scan(lex);
 			newNode->classPointer = semanticTree->findUp(lex);
 			newNode->objectType = OBJ_CLASS_OBJ;
-		}
-		else
-		{
-			newNode->objectType = OBJ_VAR;
 		}
 
 
@@ -314,7 +310,15 @@ void SyntaxAnalyzer::variable() {
 	newNode->id = lex;  // Сохраняем идентификатор
 	
 	newNode->dataType = semanticTree->getDataType(type);
-	newNode->flagInit = 1;
+	type = look_forward(1);
+	if (type == typeEval) {
+		newNode->flagInit = 1;
+	}
+	else
+	{
+		newNode->flagInit = 0;
+	}
+	
 	// Добавляем узел в дерево
 	semanticTree->setLeft(newNode);
 
@@ -348,7 +352,7 @@ void SyntaxAnalyzer::assignment() {
 	SemanticTree* node = semanticTree->findUp(lex); // ищем узел по идентификатору
 
 	if (node == NULL) {
-		semanticTree->PrintError("ID is not found", lex);
+		scaner->PrintError("Semant Error. ID is not found", lex);
 	}
 
 	// Далее проверка типа
@@ -539,15 +543,39 @@ void SyntaxAnalyzer::member_access() {
 		}
 
 		// Проверка наличия метода в классе
-		Node* methodNode = objectNode->getLeft()->getNode();
-		if (methodNode == nullptr || methodNode->classPointer == nullptr) {
+		SemanticTree* methodNode = objectNode->getNode();
+		if (methodNode == nullptr) {
 			scaner->PrintError("Method not found", lex);
 			return;
 		}
+		else
+			if (look_forward(2) == typeLeftBracket)
+				function_call(methodNode);
 	}
-
+	
 	// Проверяем на выражение
 	type = look_forward(1);
+	if (type == typeID)
+	{
+		SemanticTree* methodNode = objectNode->getNode();
+		if (methodNode == nullptr) {
+			scaner->PrintError("identifier not found in class", lex);
+			return;
+		}
+		else {
+			scan(lex);
+			SemanticTree* idNode = methodNode->findRightLeft(lex);
+			if (idNode == NULL) {
+				scaner->PrintError("identifier not found in class", lex);
+				return; // Выход из функции при ошибке
+			}
+			if (idNode->isSelfInit() == 0) {
+				scaner->PrintError("Semant Error. Variable is not initialized", lex);
+				return; // Выход из функции при ошибке
+			}
+			type = look_forward(1);
+		}
+	}
 	if (type == typeEval) {
 		assignment();
 	}
@@ -713,6 +741,45 @@ void SyntaxAnalyzer::function_call() {
 	}
 }
 
+void SyntaxAnalyzer::function_call(SemanticTree* semantTree) {
+	TypeLex lex;
+	int type;
+
+	type = scan(lex);
+
+	if (type != typeID) {
+		scaner->PrintError("Expected identifier got", lex);
+	}
+	// Ищем узел, соответствующий объекту
+	SemanticTree* objectNode = semantTree->findRightLeft(lex);
+	// Здесь выполняем поиск метода
+	SemanticTree* methodNode = objectNode->findMethod(lex); // Метод для поиска по имени метода в похоже на findUp
+	if (methodNode == NULL) {
+		scaner->PrintError("Method not found", lex);
+		return; // Выход из функции при ошибке
+	}
+
+	// Проверяем, что узел является функцией
+	if (methodNode->getSelfObjectType() != OBJ_FUNC) {
+		scaner->PrintError("Not a method", lex);
+	}
+
+	if (look_forward(1) == typePoint) {
+		member_access();
+		return;
+	}
+
+	type = scan(lex);
+	if (type != typeLeftBracket) {
+		scaner->PrintError("Expected ( got", lex);
+	}
+
+	type = scan(lex);
+	if (type != typeRightBracket) {
+		scaner->PrintError("Expected ) got", lex);
+	}
+}
+
 void SyntaxAnalyzer::condition() {
 	TypeLex lex;
 	int type;
@@ -745,8 +812,9 @@ void SyntaxAnalyzer::comparison() {
 		type = scan(lex);
 		// Проверка инициализации
 		SemanticTree* node = semanticTree->findUp(lex);
-		if (!node->isSelfInit()) {
-			semanticTree->PrintError("Variable is not initialized", lex);
+		if (node == nullptr) {
+			scaner->PrintError("Semant Error. Variable is not initialized", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
 		}
 		addendum();
 		type = look_forward(1);
@@ -779,7 +847,8 @@ void SyntaxAnalyzer::multiplier() {
 		// Проверка инициализации
 		SemanticTree* node = semanticTree->findUp(lex);
 		if (!node->isSelfInit()) {
-			semanticTree->PrintError("Variable is not initialized", lex);
+			scaner->PrintError("Semant Error. Variable is not initialized", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
 		}
 		unary_operation();
 		type = look_forward(1);
@@ -796,6 +865,7 @@ void SyntaxAnalyzer::unary_operation() {
 
 	while (type == typePlus || type == typeMinus) {
 		scan(lex);
+
 		// Проверка инициализации
 		type = look_forward(2);
 		if (type == typePoint) {
@@ -829,7 +899,19 @@ void SyntaxAnalyzer::elementary_expression() {
 	}
 	else if (type == typeID) {
 		type = scan(lex); // Считываем идентификатор
-
+		SemanticTree* node = semanticTree->findUp(lex);
+		if (node == nullptr) {
+			scaner->PrintError("Semant Error. Variable not found", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
+		}
+		if (node->getSelfObjectType() == OBJ_CLASS_OBJ) {
+			scaner->PrintError("Semant Error. Cannot use class object", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
+		}
+		if (node->isSelfInit() == 0) {
+			scaner->PrintError("Semant Error. Variable is not initialized", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
+		}
 		// Проверка наличия точки и идентификатора после
 		if (look_forward(1) == typePoint) {
 			member_access();
