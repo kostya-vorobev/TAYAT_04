@@ -1,26 +1,23 @@
-
-int g()
-{{}{}{{}}return f;}
-int _=((-(-9)));
-class s{
-	int d(){
-		int s();{
-		}
+class Lab4{
+	int a = 10;
+	int b;
+	int Sum()
+	{
+		int b = 2;
 	}
+
 };
-d f;
-class d{}; 
-int main(){
-s.d = 21;
-s.s();
-//return 0;
-switch(6)
+
+int Sums()
 {
-case 6:{{}}{}{}
-case 7:
-default:
-case 8: break; break;
-}
-return 0;
+	int b = 3;
 }
 
+	//комментарий
+int main()
+{
+	int c = 10;
+	const int s = 10;
+	Lab4 lab;
+	c = lab.Sum() + 1;
+}

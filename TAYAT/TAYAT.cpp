@@ -14,7 +14,8 @@ int main()
 
     
         Scanner *scaner = new Scanner(file);
-        SyntaxAnalyzer* diagram = new SyntaxAnalyzer(scaner);
+        SemanticTree* semanticTree = new SemanticTree();
+        SyntaxAnalyzer* diagram = new SyntaxAnalyzer(scaner, semanticTree);
 
         diagram->program();
 
@@ -25,7 +26,9 @@ int main()
             std::cout << "OK" << std::endl;
         else
             std::cout << "ERROR" << std::endl;
-        
+        semanticTree->print(0);
+        //semanticTree->print();
+
     
     /*// Создание объекта Scanner
     Scanner scanner(file);

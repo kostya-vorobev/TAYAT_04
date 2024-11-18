@@ -140,12 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="SemanticTree.cpp" />
     <ClCompile Include="SyntaxAnalyzer.cpp" />
     <ClCompile Include="TAYAT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LEXEME.h" />
     <ClInclude Include="Scanner.h" />
+    <ClInclude Include="SemanticTree.h" />
     <ClInclude Include="SyntaxAnalyzer.h" />
   </ItemGroup>
   <ItemGroup>
