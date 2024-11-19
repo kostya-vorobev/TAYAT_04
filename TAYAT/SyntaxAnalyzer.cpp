@@ -357,7 +357,7 @@ void SyntaxAnalyzer::assignment() {
 	if (node == NULL) {
 		scaner->PrintError("Semant Error. ID is not found", lex);
 	}
-
+	node->setInit();
 	// Далее проверка типа
 	TYPE_DATA varType = node->getSelfDataType();
 
@@ -375,7 +375,7 @@ void SyntaxAnalyzer::assignment() {
 
 
 	TYPE_VALUE val = expression();
-	semanticTree->setValue(semanticTree->getSelfId(), val);
+	node->setValue(node->getSelfId(), val);
 }
 
 
@@ -670,6 +670,17 @@ void SyntaxAnalyzer::operator_() {
 	}
 
 	if (type == typeID) {
+		type2 = look_forward(1);
+		if (type2 == typeEval) {
+			assignment();
+			type = scan(lex);
+			if (type != typeSemicolon)
+				scaner->PrintError("Expected ';' 4 got", lex);
+			return;
+		}
+	}
+
+	if (type == typeID) {
 		type2 = look_forward(2);
 		if (type2 == typeEval) {
 			assignment();
@@ -938,16 +949,7 @@ TYPE_VALUE SyntaxAnalyzer::elementary_expression() {
 		return result;
 	}
 	else if (type == typeID) {
-		/*type = scan(lex); // Считываем идентификатор
-		SemanticTree* node = semanticTree->findUp(lex);
-		if (node == nullptr) {
-			scaner->PrintError("Semant Error. Variable not found", lex);
-			//semanticTree->PrintError("Variable is not initialized", lex);
-		}
-		if (node->getSelfObjectType() != OBJ_CLASS_OBJ) {
-			scaner->PrintError("Semant Error. Cannot use class object", lex);
-			//semanticTree->PrintError("Variable is not initialized", lex);
-		}
+		/*
 		// Проверка наличия точки и идентификатора после*/
 		if (look_forward(2) == typePoint) {
 			result = member_access();
@@ -958,7 +960,13 @@ TYPE_VALUE SyntaxAnalyzer::elementary_expression() {
 			function_call();
 			return result;
 		}
-
+		type = scan(lex); // Считываем идентификатор
+		SemanticTree* node = semanticTree->findUp(lex);
+		if (node == nullptr) {
+			scaner->PrintError("Semant Error. Variable not found", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
+		}
+		result = node->getData();
 		return result;
 	}
 	else if (type == typePoint) {

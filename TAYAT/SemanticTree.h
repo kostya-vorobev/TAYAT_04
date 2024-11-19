@@ -56,62 +56,7 @@ struct Node {
 	void setInit() {
 		flagInit = 1;
 	};
-	// Метод для установки значения
-	void setValue(const TYPE_VALUE& newValue) {
-		switch (dataType.dataType) {
-		case TYPE_INTEGER:
-			try {
-				dataType.value.dataInt = newValue.dataDouble;
-			}
-			catch (const std::invalid_argument&) {
-				throw std::runtime_error("Invalid value for integer conversion.");
-			}
-			catch (const std::out_of_range&) {
-				throw std::runtime_error("Integer value out of range.");
-			}
-			break;
-		case TYPE_LONG: {
-			try {
-				dataType.value.dataLong = newValue.dataDouble;
-			}
-			catch (const std::invalid_argument&) {
-				throw std::runtime_error("Invalid value for long conversion.");
-			}
-			catch (const std::out_of_range&) {
-				throw std::runtime_error("Long value out of range.");
-			}
-			break;
-		}
-		case TYPE_SHORT: {
-			try {
-				dataType.value.dataShort = newValue.dataDouble;
-			}
-			catch (const std::invalid_argument&) {
-				throw std::runtime_error("Invalid value for short conversion.");
-			}
-			catch (const std::out_of_range&) {
-				throw std::runtime_error("Short value out of range.");
-			}
-			break;
-		}
-		case TYPE_DOUBLE: {
-			try {
-				dataType.value.dataDouble = newValue.dataDouble;
-			}
-			catch (const std::invalid_argument&) {
-				throw std::runtime_error("Invalid value for double conversion.");
-			}
-			catch (const std::out_of_range&) {
-				throw std::runtime_error("Double value out of range.");
-			}
-			break;
-		}
-		default:
-			// Обработка неизвестного типа
-			//throw std::runtime_error("Unknown data type.");
-			break;
-		}
-	};
+
 };
 
 class SemanticTree
@@ -175,7 +120,7 @@ public:
 	void setCurrent(SemanticTree* tree);
 
 	SemanticTree* getCurrent();
-
+	void setInit();
 };
 
 #endif

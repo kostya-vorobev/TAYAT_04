@@ -378,11 +378,57 @@ bool SemanticTree::setValue(const string& id, const TYPE_VALUE& val) {
 	if (node == nullptr) {
 		return false; // Узел не найден
 	}
-	node->node->setValue(val); // Установка нового значения
-
+	//node->node->setValue(val); // Установка нового значения
+	switch (node->node->dataType.dataType) {
+	case TYPE_INTEGER:
+			node->node->dataType.value.dataInt = (int)val.dataDouble;
+		break;
+	case TYPE_LONG: {
+			node->node->dataType.value.dataLong = (long)val.dataDouble;
+		break;
+	}
+	case TYPE_SHORT: {
+			node->node->dataType.value.dataShort = (short)val.dataDouble;
+		break;
+	}
+	case TYPE_DOUBLE: {
+			node->node->dataType.value.dataDouble = val.dataDouble;
+		break;
+	}
+	default:
+		// Обработка неизвестного типа
+		//throw std::runtime_error("Unknown data type.");
+		break;
+	}
 	return true; // Успешно обновлено
 }
 
 TYPE_VALUE SemanticTree::getData() {
-	return this->node->dataType.value;
+	TYPE_VALUE val;
+	switch (this->node->dataType.dataType) {
+	case TYPE_INTEGER:
+		val.dataDouble = this->node->dataType.value.dataInt;
+		break;
+	case TYPE_LONG: {
+		val.dataDouble = this->node->dataType.value.dataLong;
+		break;
+	}
+	case TYPE_SHORT: {
+		val.dataDouble = this->node->dataType.value.dataShort;
+		break;
+	}
+	case TYPE_DOUBLE: {
+		val.dataDouble = this->node->dataType.value.dataDouble;
+		break;
+	}
+	default:
+		// Обработка неизвестного типа
+		//throw std::runtime_error("Unknown data type.");
+		break;
+	}
+	return val;
 }
+void SemanticTree::setInit() {
+	this->node->flagInit = 1;
+}
+
