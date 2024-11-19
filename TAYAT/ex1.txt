@@ -1,5 +1,5 @@
 class Lab4{
-	int a = 10;
+	double a = 10;
 	int b;
 	int Sum()
 	{
@@ -16,9 +16,9 @@ int Sums()
 	//комментарий
 int main()
 {
-	//int c;
+	int c;
 	const int s;
 	Lab4 lab;
-	b = lab.a;
-	int c = lab.a + Sum() + 100 -(+50);
+	//b = lab.a;
+	c = 1 / lab.a;
 }
