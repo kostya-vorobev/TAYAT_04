@@ -6,7 +6,9 @@ SemanticTree::SemanticTree()
 	left = NULL;
 	right = NULL;
 	this->node = new Node();
-	if (node != NULL) memcpy(this->node, node, sizeof(Node));
+	if (node != NULL) {
+		memcpy(this->node, node, sizeof(Node));
+	}
 }
 
 SemanticTree::SemanticTree(Scanner* scanner)
@@ -16,7 +18,10 @@ SemanticTree::SemanticTree(Scanner* scanner)
 	left = NULL;
 	right = NULL;
 	this->node = new Node();
-	if (node != NULL) memcpy(this->node, node, sizeof(Node));
+	if (node != NULL) {
+		memcpy(this->node, node, sizeof(Node));
+		
+	}
 }
 
 SemanticTree::SemanticTree(SemanticTree* up, SemanticTree* left, SemanticTree* right, Node* node)
@@ -25,7 +30,11 @@ SemanticTree::SemanticTree(SemanticTree* up, SemanticTree* left, SemanticTree* r
 	this->left = left;
 	this->right = right;
 	this->node = new Node();
-	if (node != NULL) memcpy(this->node, node, sizeof(Node));
+	
+	if (node != NULL) {
+		memcpy(this->node, node, sizeof(Node));
+		node->dataType = TData();
+	}
 }
 
 SemanticTree::~SemanticTree()
@@ -316,7 +325,7 @@ TYPE_OBJECT SemanticTree::getSelfObjectType()
 
 SemanticTree* SemanticTree::getClassPointer()
 {
-	return node->pointer;
+	return this->node->classPointer;
 }
 
 TYPE_DATA SemanticTree::getSelfDataType()
@@ -403,22 +412,26 @@ bool SemanticTree::setValue(const string& id, const TYPE_VALUE& val) {
 	return true; // Успешно обновлено
 }
 
-TYPE_VALUE SemanticTree::getData() {
-	TYPE_VALUE val;
+TData* SemanticTree::getData() {
+	TData* val = new TData;
 	switch (this->node->dataType.dataType) {
 	case TYPE_INTEGER:
-		val.dataDouble = this->node->dataType.value.dataInt;
+		val->dataType = TYPE_INTEGER;
+		val->value.dataDouble = this->node->dataType.value.dataInt;
 		break;
 	case TYPE_LONG: {
-		val.dataDouble = this->node->dataType.value.dataLong;
+		val->dataType = TYPE_LONG;
+		val->value.dataDouble = this->node->dataType.value.dataLong;
 		break;
 	}
 	case TYPE_SHORT: {
-		val.dataDouble = this->node->dataType.value.dataShort;
+		val->dataType = TYPE_SHORT;
+		val->value.dataDouble = this->node->dataType.value.dataShort;
 		break;
 	}
 	case TYPE_DOUBLE: {
-		val.dataDouble = this->node->dataType.value.dataDouble;
+		val->dataType = TYPE_DOUBLE;
+		val->value.dataDouble = this->node->dataType.value.dataDouble;
 		break;
 	}
 	default:

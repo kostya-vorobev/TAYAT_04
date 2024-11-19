@@ -1,4 +1,4 @@
-#include "SyntaxAnalyzer.h"
+п»ї#include "SyntaxAnalyzer.h"
 #include "SemanticTree.h"
 
 int SyntaxAnalyzer::look_forward(int pos) {
@@ -53,7 +53,7 @@ void SyntaxAnalyzer::Tclass() {
 	Node* newNode = new Node();
 	newNode->id = lex;
 	newNode->objectType = OBJ_CLASS;
-	newNode->dataType.dataType = typeData;
+	newNode->dataType = TData();
 	if (classNode != NULL) newNode->pointer = classNode;
 	semanticTree->setLeft(newNode);
 	semanticTree = semanticTree->getLeft();
@@ -168,80 +168,80 @@ void SyntaxAnalyzer::Const()
 	newNode->id = lex;
 	newNode->objectType = OBJ_CONST;
 	//newNode->dataType = semanticTree->semantic_include(lex, OBJ_CONST, semanticTree->getDataType(type));
-	newNode->flagInit = 1; // Устанавливаем флаг инициализации
+	newNode->flagInit = 1; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	semanticTree->setLeft(newNode);
 	//semanticTree = semanticTree->getLeft();
 }
 
 void SyntaxAnalyzer::function() {
-    TypeLex lex;
-    int type, pointer;
+	TypeLex lex;
+	int type, pointer;
 	Node* newNode = new Node();
-
-    type = scan(lex);
-    if (type != typeInt && type != typeShort && type != typeLong && type != typeDouble && type != typeID) {
-        scaner->PrintError("Expected return type got", lex);
-    }
+	newNode->dataType = TData();
+	type = scan(lex);
+	if (type != typeInt && type != typeShort && type != typeLong && type != typeDouble && type != typeID) {
+		scaner->PrintError("Expected return type got", lex);
+	}
 	newNode->dataType.dataType = semanticTree->getDataType(type);
 	newNode->objectType = OBJ_FUNC;
-    // Сохраняем тот класс, в котором находимся
-    SemanticTree* classNode = (inClass) ? semanticTree->findUp(lex) : nullptr;
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	SemanticTree* classNode = (inClass) ? semanticTree->findUp(lex) : nullptr;
 
-    // Проверка на идентификатор функции
-    type = scan(lex);
-    if (type != typeID && type != typeMain) {
-        scaner->PrintError("Expected identifier got", lex);
-    }
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	type = scan(lex);
+	if (type != typeID && type != typeMain) {
+		scaner->PrintError("Expected identifier got", lex);
+	}
 
-    // Проверка на дублирование идентификатора
-    if (semanticTree->isDoublicateId(semanticTree, lex)) {
-        scaner->PrintError("Reassignment", lex);
-    }
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	if (semanticTree->isDoublicateId(semanticTree, lex)) {
+		scaner->PrintError("Reassignment", lex);
+	}
 
-    // Создаем новый узел для функции
-    
-    newNode->id = lex;  // Сохраняем идентификатор
-    //newNode->dataType = semanticTree->getDataType(type);
-    newNode->classPointer = classNode; // Указываем на родительский класс, если функция внутри класса
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    // Записываем узел в дерево
-    semanticTree->setLeft(newNode);
-    semanticTree = semanticTree->getLeft(); // Переход к новому узлу
-    semanticTree->setRight(NULL);
+	newNode->id = lex;  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	//newNode->dataType = semanticTree->getDataType(type);
+	newNode->classPointer = classNode; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
-    SemanticTree* tmpTree = semanticTree; // Сохраняем текущее состояние дерева
-	
-    semanticTree = semanticTree->getRight(); // Переход к правому поддереву
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+	semanticTree->setLeft(newNode);
+	semanticTree = semanticTree->getLeft(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+	semanticTree->setRight(NULL);
 
-    // Проверка на начало тела функции
-    type = scan(lex);
-    if (type != typeLeftBracket) {
-        scaner->PrintError("Expected ( got", lex);
-    }
+	SemanticTree* tmpTree = semanticTree; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
-    // Проверка на закрывающую круглую скобку
-    type = scan(lex);
-    if (type != typeRightBracket) {
-        scaner->PrintError("Expected ) got", lex);
-    }
+	semanticTree = semanticTree->getRight(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    // Проверка на начало блока функции
-    type = scan(lex);
-    if (type != typeLeftBrace) {
-        scaner->PrintError("Expected { got", lex);
-    }
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	type = scan(lex);
+	if (type != typeLeftBracket) {
+		scaner->PrintError("Expected ( got", lex);
+	}
 
-    // Обработка операторов (тело функции)
-    operators_and_descriptions();
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+	type = scan(lex);
+	if (type != typeRightBracket) {
+		scaner->PrintError("Expected ) got", lex);
+	}
 
-    // Вернемся к предыдущему узлу
-    semanticTree = tmpTree;
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	type = scan(lex);
+	if (type != typeLeftBrace) {
+		scaner->PrintError("Expected { got", lex);
+	}
 
-    // Проверка на закрывающую фигурную скобку
-    type = scan(lex);
-    if (type != typeRightBrace) {
-        scaner->PrintError("Expected } got", lex);
-    }
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+	operators_and_descriptions();
+
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+	semanticTree = tmpTree;
+
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+	type = scan(lex);
+	if (type != typeRightBrace) {
+		scaner->PrintError("Expected } got", lex);
+	}
 }
 
 void SyntaxAnalyzer::type() {
@@ -272,6 +272,7 @@ void SyntaxAnalyzer::variable() {
 	TypeLex lex;
 	int type;
 	Node* newNode = new Node();
+	newNode->dataType = TData();
 	type = look_forward(1);
 	if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble)
 	{
@@ -281,8 +282,9 @@ void SyntaxAnalyzer::variable() {
 	}
 	else
 		if (type == typeID) {
-			type = scan(lex);
+			type = scan(lex);		
 			newNode->dataType.dataType = semanticTree->getDataType(type);
+			newNode->flagInit = 1;
 			newNode->classPointer = semanticTree->findUp(lex);
 			newNode->objectType = OBJ_CLASS_OBJ;
 		}
@@ -304,15 +306,15 @@ void SyntaxAnalyzer::variable() {
 	int pointer = scaner->getPointer();
 
 	type = scan(lex);
-	// Проверяем дублирование идентификатора
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	if (semanticTree->isDoublicateId(semanticTree, lex)) {
 		semanticTree->PrintError("Reassignment", lex);
 	}
 
-	// Создаём новый узел для добавления в дерево
+	// пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
-	newNode->id = lex;  // Сохраняем идентификатор
-	
+	newNode->id = lex;  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+
 	type = look_forward(1);
 	if (type == typeEval) {
 		newNode->flagInit = 1;
@@ -321,14 +323,14 @@ void SyntaxAnalyzer::variable() {
 	{
 		newNode->flagInit = 0;
 	}
-	
-	// Добавляем узел в дерево
+
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 	semanticTree->setLeft(newNode);
 
-	// Переход к левому дочернему узлу для дальнейших операций
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	semanticTree = semanticTree->getLeft();
 
-	  // Рекомендуется вывести дерево после добавления узла
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
 
 	scaner->putPointer(pointer);
@@ -352,13 +354,13 @@ void SyntaxAnalyzer::assignment() {
 		scaner->PrintError("Expected identificator got", lex);
 	}
 
-	SemanticTree* node = semanticTree->findUp(lex); // ищем узел по идентификатору
+	SemanticTree* node = semanticTree->findUp(lex); // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
 	if (node == NULL) {
 		scaner->PrintError("Semant Error. ID is not found", lex);
 	}
 	node->setInit();
-	// Далее проверка типа
+	// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 	TYPE_DATA varType = node->getSelfDataType();
 
 	type = look_forward(1);
@@ -374,14 +376,14 @@ void SyntaxAnalyzer::assignment() {
 	}
 
 
-	TYPE_VALUE val = expression();
-	node->setValue(node->getSelfId(), val);
+	TData* val = expression();
+	node->setValue(node->getSelfId(), val->value);
 }
 
 
-TYPE_VALUE SyntaxAnalyzer::expression() {
-	TypeLex lex ;
-	TYPE_VALUE result;
+TData* SyntaxAnalyzer::expression() {
+	TypeLex lex;
+	TData* result = new TData();
 	int type;
 
 	result = comparison();
@@ -389,9 +391,9 @@ TYPE_VALUE SyntaxAnalyzer::expression() {
 	while (type == typeEq || type == typeNo) {
 		type = scan(lex);
 		if (type == typeEq)
-			result.dataDouble = (result.dataDouble == comparison().dataDouble);
+			result->value.dataDouble = (result->value.dataDouble == comparison()->value.dataDouble);
 		if (type == typeLessOrEq)
-			result.dataDouble = !(result.dataDouble == comparison().dataDouble);
+			result->value.dataDouble = !(result->value.dataDouble == comparison()->value.dataDouble);
 		type = look_forward(1);
 	}
 	return result;
@@ -413,6 +415,7 @@ void SyntaxAnalyzer::composite_operator() {
 			scaner->PrintError("Expected { got", lex);
 
 		Node* newNode = new Node();
+		newNode->dataType = TData();
 		newNode->id = lex;
 		newNode->objectType = OBJ_VAR;
 		newNode->dataType.dataType = semanticTree->getDataType(type);
@@ -422,7 +425,7 @@ void SyntaxAnalyzer::composite_operator() {
 		semanticTree = semanticTree->getLeft();
 		semanticTree->setRight(NULL);
 		SemanticTree* tmpTree = semanticTree;
-		
+
 		semanticTree = semanticTree->getRight();
 
 		operators_and_descriptions();
@@ -511,40 +514,54 @@ void SyntaxAnalyzer::Switch() {
 		scaner->PrintError("Expected '}'", lex);
 }
 
-TYPE_VALUE SyntaxAnalyzer::member_access() {
+TData* SyntaxAnalyzer::member_access() {
 	TypeLex lex;
 	int type;
-	TYPE_VALUE result;
+	TData* result = new TData;;
 
 	type = scan(lex);
 	if (type != typeID) {
 		scaner->PrintError("Expected identifier", lex);
 	}
 
-	// Ищем узел, соответствующий объекту
+	// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	SemanticTree* objectNode = semanticTree->findUp(lex);
-	if (objectNode == NULL) {
-		scaner->PrintError("Object not found", lex);
-		return result;
+	
+	if (objectNode == NULL){
+		objectNode = semanticTree->getClassPointer();
+		objectNode = objectNode->findRightLeft(lex);
+		if (objectNode == NULL) {
+			scaner->PrintError("Object not found", lex);
+				return result;
+		}
+		semanticTree = objectNode;
 	}
 
-	// Проверяем, что узел является классом
+
+
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	if (objectNode->getSelfObjectType() == OBJ_CLASS_OBJ) {
-		// Получаем имя метода
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 		type = look_forward(1);
 		if (type != typePoint) {
-			return result; // Если не точка, выходим из цикла
+			return result; // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 		}
 
-		scan(lex); // Пропускаем точку
+		scan(lex); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+		type = look_forward(2); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		if (type == typePoint) {
+			result = member_access();
+			semanticTree = objectNode;
+			return result; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+		}
 
-		type = look_forward(1); // Следующий тип должен быть идентификатором
+		type = look_forward(1); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		if (type != typeID) {
-			scaner->PrintError("Expected identifier after '.'", lex);
-			//return result; // Выход из функции при ошибке
+			
+			return result; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 		}
 
-		// Проверка наличия метода в классе
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 		SemanticTree* methodNode = objectNode->getNode();
 		if (methodNode == nullptr) {
 			scaner->PrintError("Method not found", lex);
@@ -554,8 +571,8 @@ TYPE_VALUE SyntaxAnalyzer::member_access() {
 			if (look_forward(2) == typeLeftBracket)
 				function_call(methodNode);
 	}
-	
-	// Проверяем на выражение
+
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	type = look_forward(1);
 	if (type == typeID)
 	{
@@ -569,11 +586,11 @@ TYPE_VALUE SyntaxAnalyzer::member_access() {
 			SemanticTree* idNode = methodNode->findRightLeft(lex);
 			if (idNode == NULL) {
 				scaner->PrintError("identifier not found in class", lex);
-				//return; // Выход из функции при ошибке
+				//return; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 			}
 			if (idNode->isSelfInit() == 0) {
 				scaner->PrintError("Semant Error. Variable is not initialized", lex);
-				//return; // Выход из функции при ошибке
+				//return; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 			}
 			result = idNode->getData();
 			type = look_forward(1);
@@ -723,16 +740,16 @@ void SyntaxAnalyzer::function_call() {
 	if (type != typeID) {
 		scaner->PrintError("Expected identifier got", lex);
 	}
-	// Ищем узел, соответствующий объекту
+	// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	SemanticTree* objectNode = semanticTree->findUp(lex);
-	// Здесь выполняем поиск метода
-	SemanticTree* methodNode = objectNode->findMethod(lex); // Метод для поиска по имени метода в похоже на findUp
+	// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+	SemanticTree* methodNode = objectNode->findMethod(lex); // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ findUp
 	if (methodNode == NULL) {
 		scaner->PrintError("Method not found", lex);
-		return; // Выход из функции при ошибке
+		return; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 	}
 
-	// Проверяем, что узел является функцией
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	if (methodNode->getSelfObjectType() != OBJ_FUNC) {
 		scaner->PrintError("Not a method", lex);
 	}
@@ -762,16 +779,16 @@ void SyntaxAnalyzer::function_call(SemanticTree* semantTree) {
 	if (type != typeID) {
 		scaner->PrintError("Expected identifier got", lex);
 	}
-	// Ищем узел, соответствующий объекту
+	// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	SemanticTree* objectNode = semantTree->findRightLeft(lex);
-	// Здесь выполняем поиск метода
-	SemanticTree* methodNode = objectNode->findMethod(lex); // Метод для поиска по имени метода в похоже на findUp
+	// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+	SemanticTree* methodNode = objectNode->findMethod(lex); // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ findUp
 	if (methodNode == NULL) {
 		scaner->PrintError("Method not found", lex);
-		return; // Выход из функции при ошибке
+		return; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 	}
 
-	// Проверяем, что узел является функцией
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	if (methodNode->getSelfObjectType() != OBJ_FUNC) {
 		scaner->PrintError("Not a method", lex);
 	}
@@ -815,10 +832,10 @@ void SyntaxAnalyzer::condition() {
 	type = look_forward(1);
 }
 
-TYPE_VALUE SyntaxAnalyzer::comparison() {
+TData* SyntaxAnalyzer::comparison() {
 	TypeLex lex;
 	int type;
-	TYPE_VALUE result;
+	TData* result = new TData;;
 
 	result = addendum();
 
@@ -826,22 +843,22 @@ TYPE_VALUE SyntaxAnalyzer::comparison() {
 	while (type == typeLess || type == typeLessOrEq || type == typeMore || type == typeMoreOrEq) {
 		type = scan(lex);
 		if (type == typeLess)
-			result.dataDouble = (result.dataDouble < addendum().dataDouble);
+			result->value.dataDouble = (result->value.dataDouble < addendum()->value.dataDouble);
 		if (type == typeLessOrEq)
-			result.dataDouble = (result.dataDouble <= addendum().dataDouble);
+			result->value.dataDouble = (result->value.dataDouble <= addendum()->value.dataDouble);
 		if (type == typeMore)
-			result.dataDouble = (result.dataDouble > addendum().dataDouble);
+			result->value.dataDouble = (result->value.dataDouble > addendum()->value.dataDouble);
 		if (type == typeMoreOrEq)
-			result.dataDouble = (result.dataDouble >= addendum().dataDouble);
+			result->value.dataDouble = (result->value.dataDouble >= addendum()->value.dataDouble);
 		type = look_forward(1);
 	}
 	return result;
 }
 
-TYPE_VALUE SyntaxAnalyzer::addendum() {
+TData* SyntaxAnalyzer::addendum() {
 	TypeLex lex;
 	int type;
-	TYPE_VALUE result;
+	TData* result = new TData;;
 
 	result = multiplier();
 
@@ -849,18 +866,18 @@ TYPE_VALUE SyntaxAnalyzer::addendum() {
 	while (type == typePlus || type == typeMinus) {
 		type = scan(lex);
 		if (type == typePlus)
-			result.dataDouble += multiplier().dataDouble;
+			result->value.dataDouble += multiplier()->value.dataDouble;
 		if (type == typeMinus)
-			result.dataDouble -= multiplier().dataDouble;
+			result->value.dataDouble -= multiplier()->value.dataDouble;
 		type = look_forward(1);
 	}
 	return result;
 }
 
-TYPE_VALUE SyntaxAnalyzer::multiplier() {
+TData* SyntaxAnalyzer::multiplier() {
 	TypeLex lex;
 	int type;
-	TYPE_VALUE result;
+	TData* result = new TData;;
 
 	result = unary_operation();
 
@@ -868,20 +885,29 @@ TYPE_VALUE SyntaxAnalyzer::multiplier() {
 	while (type == typeMul || type == typeDiv || type == typeMod) {
 		type = scan(lex);
 		if (type == typeMul)
-			result.dataDouble *= unary_operation().dataDouble;
-		if (type == typeDiv)
-			result.dataDouble /= unary_operation().dataDouble;
+			result->value.dataDouble *= unary_operation()->value.dataDouble;
+		if (type == typeDiv) {
+			TData* buffer = unary_operation();
+			if (buffer->dataType == TYPE_INTEGER && result->value.dataDouble!=0) {
+				result->value.dataDouble = (int)(result->value.dataDouble / buffer->value.dataDouble);
+			}
+			else
+				if (buffer->value.dataDouble != 0)
+					result->value.dataDouble /= buffer->value.dataDouble;
+				else
+					scaner->PrintError("Zero devision.", lex);
+		}
 		if (type == typeMod)
-			result.dataDouble = fmod(result.dataDouble, unary_operation().dataDouble);
+			result->value.dataDouble = fmod(result->value.dataDouble, unary_operation()->value.dataDouble);
 		type = look_forward(1);
 	}
 	return result;
 }
 
-TYPE_VALUE SyntaxAnalyzer::unary_operation() {
+TData* SyntaxAnalyzer::unary_operation() {
 	TypeLex lex;
 	int type, type2;
-	TYPE_VALUE result;
+	TData* result = new TData;
 
 	result = elementary_expression();
 
@@ -890,9 +916,9 @@ TYPE_VALUE SyntaxAnalyzer::unary_operation() {
 	while (type == typePlus || type == typeMinus) {
 		type = scan(lex);
 		if (type == typePlus)
-			result.dataDouble += elementary_expression().dataDouble;
+			result->value.dataDouble += elementary_expression()->value.dataDouble;
 		if (type == typeMinus)
-			result.dataDouble -= elementary_expression().dataDouble;
+			result->value.dataDouble -= elementary_expression()->value.dataDouble;
 
 		type = look_forward(1);
 	}
@@ -902,33 +928,30 @@ TYPE_VALUE SyntaxAnalyzer::unary_operation() {
 
 
 
-TYPE_VALUE SyntaxAnalyzer::elementary_expression() {
+TData* SyntaxAnalyzer::elementary_expression() {
 	TypeLex lex;
-	TYPE_VALUE result;
+	TData* res = new TData();
+	TData* result = new TData;
 	int type = look_forward(1);
 
 	if (type == typeConst || type == constInt || type == constDouble) {
 		type = scan(lex);
 		switch (type) {
 		case typeConst:
-			result.dataInt = 0;
+			result->value.dataInt = 0;
 			return result;
 			break;
 		case constInt:
-			try {
-				result.dataDouble = std::stoi(lex);
-			}
-			catch (const std::invalid_argument&) {
-				scaner->PrintError("Invalid value for integer conversion.", lex);
-			}
-			catch (const std::out_of_range&) {
-				scaner->PrintError("Integer value out of range.", lex);
-			}
+			
+				result->value.dataDouble= std::stod(string(lex));
+				result->dataType = TYPE_INTEGER;
+				//res->value.dataInt = std::stoi(string(lex));
 			return result;
 			break;
 		case constDouble:
 			try {
-				result.dataDouble = std::stod(lex);
+				result->value.dataDouble = std::stod(lex);
+				result->dataType = TYPE_DOUBLE;
 			}
 			catch (const std::invalid_argument&) {
 				scaner->PrintError("Invalid value for integer conversion.", lex);
@@ -950,7 +973,7 @@ TYPE_VALUE SyntaxAnalyzer::elementary_expression() {
 	}
 	else if (type == typeID) {
 		/*
-		// Проверка наличия точки и идентификатора после*/
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ*/
 		if (look_forward(2) == typePoint) {
 			result = member_access();
 			return result;
@@ -960,7 +983,7 @@ TYPE_VALUE SyntaxAnalyzer::elementary_expression() {
 			function_call();
 			return result;
 		}
-		type = scan(lex); // Считываем идентификатор
+		type = scan(lex); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		SemanticTree* node = semanticTree->findUp(lex);
 		if (node == nullptr) {
 			scaner->PrintError("Semant Error. Variable not found", lex);
@@ -1027,7 +1050,7 @@ TYPE_VALUE SyntaxAnalyzer::elementary_expression(SemanticTree* tree) {
 		return result;
 	}
 	else if (type == typeID) {
-		type = scan(lex); // Считываем идентификатор
+		type = scan(lex); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		SemanticTree* node = semanticTree->findUp(lex);
 		if (node == nullptr) {
 			scaner->PrintError("Semant Error. Variable not found", lex);
@@ -1041,7 +1064,7 @@ TYPE_VALUE SyntaxAnalyzer::elementary_expression(SemanticTree* tree) {
 			scaner->PrintError("Semant Error. Variable is not initialized", lex);
 			//semanticTree->PrintError("Variable is not initialized", lex);
 		}
-		// Проверка наличия точки и идентификатора после
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 		if (look_forward(1) == typePoint) {
 			member_access();
 			return;

@@ -105,7 +105,7 @@ public:
 	void setDataType(TYPE_DATA, TYPE_VALUE);
 
 	TYPE_DATA getTypeResult(TYPE_DATA, TYPE_DATA, int);
-	TYPE_VALUE getData();
+	TData* getData();
 	void print(int);
 	void print();
 	bool isDoublicateId(SemanticTree*, string);
