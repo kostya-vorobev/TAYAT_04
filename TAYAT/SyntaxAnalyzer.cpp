@@ -884,11 +884,14 @@ TData* SyntaxAnalyzer::multiplier() {
 	type = look_forward(1);
 	while (type == typeMul || type == typeDiv || type == typeMod) {
 		type = scan(lex);
-		if (type == typeMul)
-			result->value.dataDouble *= unary_operation()->value.dataDouble;
+		if (type == typeMul) {
+			TData* buffer = unary_operation();
+			result->dataType = buffer->dataType;
+			result->value.dataDouble *= buffer->value.dataDouble;
+		}
 		if (type == typeDiv) {
 			TData* buffer = unary_operation();
-			if (buffer->dataType == TYPE_INTEGER && result->value.dataDouble!=0) {
+			if (buffer->dataType == TYPE_INTEGER && result->dataType == TYPE_INTEGER && result->value.dataDouble!=0) {
 				result->value.dataDouble = (int)(result->value.dataDouble / buffer->value.dataDouble);
 			}
 			else
@@ -897,8 +900,11 @@ TData* SyntaxAnalyzer::multiplier() {
 				else
 					scaner->PrintError("Zero devision.", lex);
 		}
-		if (type == typeMod)
-			result->value.dataDouble = fmod(result->value.dataDouble, unary_operation()->value.dataDouble);
+		if (type == typeMod) {
+			TData* buffer = elementary_expression();
+			result->dataType = buffer->dataType;
+			result->value.dataDouble = fmod(result->value.dataDouble, buffer->value.dataDouble);
+		}
 		type = look_forward(1);
 	}
 	return result;
@@ -909,19 +915,27 @@ TData* SyntaxAnalyzer::unary_operation() {
 	int type, type2;
 	TData* result = new TData;
 
-	result = elementary_expression();
+	
 
 	type = look_forward(1);
 
-	while (type == typePlus || type == typeMinus) {
-		type = scan(lex);
-		if (type == typePlus)
-			result->value.dataDouble += elementary_expression()->value.dataDouble;
-		if (type == typeMinus)
-			result->value.dataDouble -= elementary_expression()->value.dataDouble;
+
+		if (type == typePlus) {
+			type = scan(lex);
+			TData* buffer = elementary_expression();
+			result->dataType = buffer->dataType;
+			result->value.dataDouble += buffer->value.dataDouble;
+		}else
+		if (type == typeMinus) {
+			type = scan(lex);
+			TData* buffer = elementary_expression();
+			result->dataType = buffer->dataType;
+			result->value.dataDouble -= buffer->value.dataDouble;
+		}else 
+			result = elementary_expression();
 
 		type = look_forward(1);
-	}
+	
 	return result;
 }
 
