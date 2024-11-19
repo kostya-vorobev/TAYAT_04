@@ -5,7 +5,23 @@ SemanticTree::SemanticTree()
 	up = NULL;
 	left = NULL;
 	right = NULL;
-	node = NULL;
+	this->node = new Node();
+	if (node != NULL) {
+		memcpy(this->node, node, sizeof(Node));
+	}
+}
+
+SemanticTree::SemanticTree(Scanner* scanner)
+{
+	scaner = scanner;
+	up = NULL;
+	left = NULL;
+	right = NULL;
+	this->node = new Node();
+	if (node != NULL) {
+		memcpy(this->node, node, sizeof(Node));
+		
+	}
 }
 
 SemanticTree::SemanticTree(SemanticTree* up, SemanticTree* left, SemanticTree* right, Node* node)
@@ -14,7 +30,11 @@ SemanticTree::SemanticTree(SemanticTree* up, SemanticTree* left, SemanticTree* r
 	this->left = left;
 	this->right = right;
 	this->node = new Node();
-	if (node != NULL) memcpy(this->node, node, sizeof(Node));
+	
+	if (node != NULL) {
+		memcpy(this->node, node, sizeof(Node));
+		node->dataType = TData();
+	}
 }
 
 SemanticTree::~SemanticTree()
@@ -221,11 +241,33 @@ void SemanticTree::print(int level = 0) {
 	// Увеличиваем отступ для отображения иерархии
 	std::string indent(level * 2, ' ');
 
-	if (node != NULL ) {
-		if (node->id == "")
-			std::cout << "Node: " << "\n";
+	if (node != NULL) {
+		std::cout << "Node: " << node->id << " ("
+			<< node->dataType.dataType << ") ";
+
+		// Проверка типа данных и вывод соответствующего значения
+		if ((node->objectType == OBJ_VAR || node->objectType == OBJ_CONST) && node->flagInit == 1)
+		switch (node->dataType.dataType) {
+		case TYPE_INTEGER:
+			std::cout << "Value: " << node->dataType.value.dataInt << "\n";
+			break;
+		case TYPE_LONG:
+			std::cout << "Value: " << node->dataType.value.dataLong << "\n";
+			break;
+		case TYPE_SHORT:
+			std::cout << "Value: " << node->dataType.value.dataShort << "\n";
+			break;
+		case TYPE_DOUBLE:
+			std::cout << "Value: " << node->dataType.value.dataDouble << "\n";
+			break;
+		default:
+			std::cout << "Value: Unknown data type\n";
+			break;
+		}
 		else
-		std::cout <<  "Node: " << node->id << "\n";
+		{
+			std::cout << "\n";
+		}
 	}
 	else
 	{
@@ -283,12 +325,12 @@ TYPE_OBJECT SemanticTree::getSelfObjectType()
 
 SemanticTree* SemanticTree::getClassPointer()
 {
-	return node->pointer;
+	return this->node->classPointer;
 }
 
 TYPE_DATA SemanticTree::getSelfDataType()
 {
-	return node->dataType;
+	return node->dataType.dataType;
 }
 
 string SemanticTree::getSelfId()
@@ -318,3 +360,88 @@ bool SemanticTree::canBeAdded(int type1, int type2) {
 	}
 	return false;
 }
+
+void  SemanticTree::setDataType(TYPE_DATA newType, TYPE_VALUE newValue) {
+	if (node != nullptr) {
+		node->dataType.dataType = newType;
+		node->dataType.value = newValue; // Установка нового значения
+	}
+}
+
+int SemanticTree::is_exists(SemanticTree* tree, TypeLex lex) {
+	if (findUpOneLevel(tree, lex) == NULL)
+		return 0;
+	return 1;
+}
+
+void SemanticTree::setCurrent(SemanticTree* tree) {
+	current = tree;
+}
+
+SemanticTree* SemanticTree::getCurrent() {
+	return(current);
+}
+
+bool SemanticTree::setValue(const string& id, const TYPE_VALUE& val) {
+	SemanticTree* node = findUp(id);  // Метод поиска узла по идентификатору
+	if (node == nullptr) {
+		return false; // Узел не найден
+	}
+	//node->node->setValue(val); // Установка нового значения
+	switch (node->node->dataType.dataType) {
+	case TYPE_INTEGER:
+			node->node->dataType.value.dataInt = (int)val.dataDouble;
+		break;
+	case TYPE_LONG: {
+			node->node->dataType.value.dataLong = (long)val.dataDouble;
+		break;
+	}
+	case TYPE_SHORT: {
+			node->node->dataType.value.dataShort = (short)val.dataDouble;
+		break;
+	}
+	case TYPE_DOUBLE: {
+			node->node->dataType.value.dataDouble = val.dataDouble;
+		break;
+	}
+	default:
+		// Обработка неизвестного типа
+		//throw std::runtime_error("Unknown data type.");
+		break;
+	}
+	return true; // Успешно обновлено
+}
+
+TData* SemanticTree::getData() {
+	TData* val = new TData;
+	switch (this->node->dataType.dataType) {
+	case TYPE_INTEGER:
+		val->dataType = TYPE_INTEGER;
+		val->value.dataDouble = this->node->dataType.value.dataInt;
+		break;
+	case TYPE_LONG: {
+		val->dataType = TYPE_LONG;
+		val->value.dataDouble = this->node->dataType.value.dataLong;
+		break;
+	}
+	case TYPE_SHORT: {
+		val->dataType = TYPE_SHORT;
+		val->value.dataDouble = this->node->dataType.value.dataShort;
+		break;
+	}
+	case TYPE_DOUBLE: {
+		val->dataType = TYPE_DOUBLE;
+		val->value.dataDouble = this->node->dataType.value.dataDouble;
+		break;
+	}
+	default:
+		// Обработка неизвестного типа
+		//throw std::runtime_error("Unknown data type.");
+		break;
+	}
+	return val;
+}
+void SemanticTree::setInit() {
+	this->node->flagInit = 1;
+}
+

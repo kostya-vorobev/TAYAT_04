@@ -12,9 +12,8 @@ int main()
         return 1;
     }
 
-    
         Scanner *scaner = new Scanner(file);
-        SemanticTree* semanticTree = new SemanticTree();
+        SemanticTree* semanticTree = new SemanticTree(scaner);
         SyntaxAnalyzer* diagram = new SyntaxAnalyzer(scaner, semanticTree);
 
         diagram->program();
