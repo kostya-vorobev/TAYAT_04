@@ -84,10 +84,14 @@ SemanticTree* SemanticTree::getRight()
 {
 	return this->right;
 }
-
+/*
 SemanticTree* SemanticTree::getNode()
 {
 	return this->node->classPointer;
+}*/
+Node* SemanticTree::getNode()
+{
+	return this->node;
 }
 
 SemanticTree* SemanticTree::findUp(SemanticTree* from, string id)
@@ -473,3 +477,5 @@ SemanticTree* SemanticTree::copyTree() {
 
 	return newTree;
 }
+
+bool SemanticTree::flag_interp = false;

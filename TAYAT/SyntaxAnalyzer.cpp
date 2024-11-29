@@ -192,6 +192,10 @@ void SyntaxAnalyzer::function() {
 	if (type != typeID && type != typeMain) {
 		scaner->PrintError("Expected identifier got", lex);
 	}
+	if (type == typeMain)
+		semanticTree->flag_interp = true;
+	else
+		semanticTree->flag_interp = false;
 
 	// �������� �� ������������ ��������������
 	if (semanticTree->isDoublicateId(semanticTree, lex)) {
@@ -225,7 +229,18 @@ void SyntaxAnalyzer::function() {
 		scaner->PrintError("Expected ) got", lex);
 	}
 
-	// �������� �� ������ ����� �������
+	tmpTree->getNode()->addr = scaner->getPointer();
+	// ��������� ���������� (���� �������)
+	function_body();
+
+	// �������� � ����������� ����
+	semanticTree = tmpTree;
+}
+
+void SyntaxAnalyzer::function_body() {
+	TypeLex lex;
+	int type, pointer;
+
 	type = scan(lex);
 	if (type != typeLeftBrace) {
 		scaner->PrintError("Expected { got", lex);
@@ -234,8 +249,6 @@ void SyntaxAnalyzer::function() {
 	// ��������� ���������� (���� �������)
 	operators_and_descriptions();
 
-	// �������� � ����������� ����
-	semanticTree = tmpTree;
 
 	// �������� �� ����������� �������� ������
 	type = scan(lex);
@@ -274,6 +287,11 @@ void SyntaxAnalyzer::variable() {
 	Node* newNode = new Node();
 	newNode->dataType = TData();
 	type = look_forward(1);
+	if (look_forward(2) == typeLeftBracket)
+	{
+		function_call();
+		return;
+	}
 	if (type == typeInt || type == typeShort || type == typeLong || type == typeDouble)
 	{
 		type = scan(lex);
@@ -320,11 +338,22 @@ void SyntaxAnalyzer::variable() {
 	}
 
 	// Добавление узла в дерево
-	semanticTree->setLeft(newNode);
+	SemanticTree* tmpTree = semanticTree->findRightLeft(lex);
+	if (tmpTree != NULL )
+	{
+		if (semanticTree->getSelfObjectType() != OBJ_FUNC) {
+			semanticTree->setLeft(newNode);
 
-	// Переход в левое поддерево
-	semanticTree = semanticTree->getLeft();
+			// Переход в левое поддерево
+			semanticTree = semanticTree->getLeft();
+		}
+	}
+	if (tmpTree == NULL) {
+		semanticTree->setLeft(newNode);
 
+		// Переход в левое поддерево
+		semanticTree = semanticTree->getLeft();
+	}
 	// Восстановление указателя
 	scaner->putPointer(pointer);
 
@@ -386,6 +415,8 @@ void SyntaxAnalyzer::assignment() {
 	SemanticTree* node = semanticTree->findUp(lex); // ���� ���� �� ��������������
 
 	if (node == NULL) {
+		node = semanticTree->findRightLeft(lex);
+		if(node == NULL)
 		scaner->PrintError("Semant Error. ID is not found", lex);
 	}
 	node->setInit();
@@ -492,6 +523,7 @@ void SyntaxAnalyzer::operators_and_descriptions() {
 void SyntaxAnalyzer::Switch() {
 	TypeLex lex;
 	int type;
+	bool local_flag_interp = semanticTree->flag_interp;
 
 	type = scan(lex);
 	if (type != typeSwitch)
@@ -593,7 +625,7 @@ TData* SyntaxAnalyzer::member_access() {
 		}
 
 		// �������� ������� ������ � ������
-		SemanticTree* methodNode = objectNode->getNode();
+		SemanticTree* methodNode = objectNode->getClassNode();
 		if (methodNode == nullptr) {
 			scaner->PrintError("Method not found", lex);
 			//return result;
@@ -780,7 +812,9 @@ void SyntaxAnalyzer::function_call() {
 		scaner->PrintError("Expected identifier got", lex);
 	}
 	// ���� ����, ��������������� �������
+	SemanticTree* currentTree = semanticTree;
 	SemanticTree* objectNode = semanticTree->findUp(lex);
+	SemanticTree* tmpTree = objectNode;
 	// ����� ��������� ����� ������
 	SemanticTree* methodNode = objectNode->findMethod(lex); // ����� ��� ������ �� ����� ������ � ������ �� findUp
 	if (methodNode == NULL) {
@@ -806,6 +840,14 @@ void SyntaxAnalyzer::function_call() {
 	type = scan(lex);
 	if (type != typeRightBracket) {
 		scaner->PrintError("Expected ) got", lex);
+	}
+	if (semanticTree->flag_interp) {
+		semanticTree = tmpTree;
+		int pointer = scaner->getPointer();
+		scaner->putPointer(tmpTree->getNode()->addr);
+		function_body();
+		semanticTree = currentTree;
+		scaner->putPointer(pointer);
 	}
 }
 
@@ -818,8 +860,10 @@ void SyntaxAnalyzer::function_call(SemanticTree* semantTree) {
 	if (type != typeID) {
 		scaner->PrintError("Expected identifier got", lex);
 	}
+	SemanticTree* currentTree = semanticTree;
 	// ���� ����, ��������������� �������
 	SemanticTree* objectNode = semantTree->findRightLeft(lex);
+	SemanticTree* tmpTree = objectNode;
 	// ����� ��������� ����� ������
 	SemanticTree* methodNode = objectNode->findMethod(lex); // ����� ��� ������ �� ����� ������ � ������ �� findUp
 	if (methodNode == NULL) {
@@ -845,6 +889,14 @@ void SyntaxAnalyzer::function_call(SemanticTree* semantTree) {
 	type = scan(lex);
 	if (type != typeRightBracket) {
 		scaner->PrintError("Expected ) got", lex);
+	}
+	if (semanticTree->flag_interp) {
+		semanticTree = semantTree;
+		int pointer = scaner->getPointer();
+		scaner->putPointer(tmpTree->getNode()->addr);
+		function_body();
+		semanticTree = currentTree;
+		scaner->putPointer(pointer);
 	}
 }
 
@@ -1043,9 +1095,12 @@ TData* SyntaxAnalyzer::elementary_expression() {
 		type = scan(lex); // ��������� �������������
 		SemanticTree* node = semanticTree->findUp(lex);
 		if (node == nullptr) {
+			node = semanticTree->findRightLeft(lex);
+			if (node == nullptr)
 			scaner->PrintError("Semant Error. Variable not found", lex);
 			//semanticTree->PrintError("Variable is not initialized", lex);
 		}
+		if (semanticTree->flag_interp == false) return result;
 		if (node->isSelfInit() == 0) {
 			scaner->PrintError("Semant Error. Variable not initialized", lex);
 			//semanticTree->PrintError("Variable is not initialized", lex);

@@ -54,6 +54,7 @@ struct Node {
 	SemanticTree* pointer; // ”казатель на объект
 	SemanticTree* classPointer; // ”казатель на класс
 	SemanticTree* classNode;
+	int addr;
 	void setInit() {
 		flagInit = 1;
 	};
@@ -69,6 +70,7 @@ protected:
 	SemanticTree* left;
 	SemanticTree* right;
 public:
+	static bool flag_interp;
 	SemanticTree* current;
 	SemanticTree();
 	SemanticTree(Scanner*);
@@ -83,10 +85,11 @@ public:
 
 	SemanticTree* getLeft();
 	SemanticTree* getRight();
-	SemanticTree* getNode();
+	//SemanticTree* getNode();
 	TYPE_OBJECT getSelfObjectType();
 	SemanticTree* getClassPointer();
 	SemanticTree* getClassNode();
+	Node* getNode();
 	TYPE_DATA getSelfDataType();
 	string getSelfId();
 	bool isSelfInit();

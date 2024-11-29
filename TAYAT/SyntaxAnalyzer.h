@@ -25,6 +25,7 @@ private:
 	void function_call();
 	void function_call(SemanticTree* semantTree);
 	void assignment(SemanticTree* semantTree);
+	void function_body();
 	void condition();					
 	TData* comparison();
 	TData* addendum();
