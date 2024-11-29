@@ -1,5 +1,6 @@
 class Lab10{
 	int lab9 = 10;
+	double s;
 };
 class Lab4{
 	int a = 10;
@@ -16,15 +17,17 @@ int Sums()
 {
 	int b;
 }
-
 	//комментарий
 int main()
 {
 	double c;
 	double s = 15;
-	//c = 5 * s;
-	//Lab4 lab;
-	//b = lab.a;
-	//c = 5 + lab.lab10.lab9;
+	c = 5 * s;
+	Lab4 lab1;
+	Lab4 lab2;
+	//c = 5 + lab1.lab10.lab9;
 	s = 2.0e0*(-9/2) + s;
+	lab1.lab10.s = 12;
+	lab2.lab10.s = 2.0e0;
+	c = lab1.lab10.s + lab2.lab10.s;
 }

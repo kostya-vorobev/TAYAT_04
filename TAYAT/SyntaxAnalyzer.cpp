@@ -280,15 +280,14 @@ void SyntaxAnalyzer::variable() {
 		newNode->dataType.dataType = semanticTree->getDataType(type);
 		newNode->objectType = OBJ_VAR;
 	}
-	else
-		if (type == typeID) {
-			type = scan(lex);		
-			newNode->dataType.dataType = semanticTree->getDataType(type);
-			newNode->flagInit = 1;
-			newNode->classPointer = semanticTree->findUp(lex);
-			newNode->objectType = OBJ_CLASS_OBJ;
-		}
-
+	else if (type == typeID) {
+		type = scan(lex);
+		newNode->dataType.dataType = semanticTree->getDataType(type);
+		newNode->flagInit = 1;
+		newNode->classPointer = semanticTree->findUp(lex);
+		newNode->classNode = newNode->classPointer->copyTree();
+		newNode->objectType = OBJ_CLASS_OBJ;
+	}
 
 	type = look_forward(1);
 	SemanticTree* varNode = NULL;
@@ -301,38 +300,32 @@ void SyntaxAnalyzer::variable() {
 		member_access();
 	}
 
-
-
 	int pointer = scaner->getPointer();
 
 	type = scan(lex);
-	// ��������� ������������ ��������������
+	// Проверка на дублирование идентификатора
 	if (semanticTree->isDoublicateId(semanticTree, lex)) {
 		semanticTree->PrintError("Reassignment", lex);
 	}
 
-	// ������ ����� ���� ��� ���������� � ������
-
-	newNode->id = lex;  // ��������� �������������
+	// Установка идентификатора
+	newNode->id = lex;
 
 	type = look_forward(1);
 	if (type == typeEval) {
 		newNode->flagInit = 1;
 	}
-	else
-	{
+	else {
 		newNode->flagInit = 0;
 	}
 
-	// ��������� ���� � ������
+	// Добавление узла в дерево
 	semanticTree->setLeft(newNode);
 
-	// ������� � ������ ��������� ���� ��� ���������� ��������
+	// Переход в левое поддерево
 	semanticTree = semanticTree->getLeft();
 
-	// ������������� ������� ������ ����� ���������� ����
-
-
+	// Восстановление указателя
 	scaner->putPointer(pointer);
 
 	type = look_forward(2);
@@ -344,6 +337,42 @@ void SyntaxAnalyzer::variable() {
 	type = scan(lex);
 }
 
+void SyntaxAnalyzer::assignment(SemanticTree* semanticID) {
+	TypeLex lex;
+	int type;
+
+	type = scan(lex);
+	if (type != typeID) {
+		scaner->PrintError("Expected identificator got", lex);
+	}
+
+	//SemanticTree* node = semanticID->getClassNode(); // ���� ���� �� ��������������
+	SemanticTree* node = semanticID->findRightLeft(lex);
+
+	if (node == NULL) {
+		scaner->PrintError("Semant Error. ID is not found", lex);
+	}
+	node->setInit();
+	// ����� �������� ����
+	TYPE_DATA varType = node->getSelfDataType();
+
+	type = look_forward(1);
+
+	if (look_forward(1) == typePoint) {
+		member_access();
+	}
+
+	type = scan(lex);
+
+	if (type != typeEval) {
+		scaner->PrintError("Expected = got", lex);
+	}
+
+
+	TData* val = expression();
+	node->setValue(node->getSelfId(), val->value);
+	return;
+}
 
 void SyntaxAnalyzer::assignment() {
 	TypeLex lex;
@@ -524,15 +553,17 @@ TData* SyntaxAnalyzer::member_access() {
 		scaner->PrintError("Expected identifier", lex);
 	}
 
-	// ���� ����, ��������������� �������
+	//SemanticTree* tmpNode = semanticTree;
 	SemanticTree* objectNode = semanticTree->findUp(lex);
-	
-	if (objectNode == NULL){
-		objectNode = semanticTree->getClassPointer();
+	if (objectNode != NULL)
+		semanticTree = semanticTree->findUp(lex);
+	if (objectNode == NULL) {
+		//objectNode = semanticTree->getClassPointer();
+		objectNode = semanticTree->getClassNode();
 		objectNode = objectNode->findRightLeft(lex);
 		if (objectNode == NULL) {
 			scaner->PrintError("Object not found", lex);
-				return result;
+			return result;
 		}
 		semanticTree = objectNode;
 	}
@@ -557,7 +588,7 @@ TData* SyntaxAnalyzer::member_access() {
 
 		type = look_forward(1); // ��������� ��� ������ ���� ���������������
 		if (type != typeID) {
-			
+
 			return result; // ����� �� ������� ��� ������
 		}
 
@@ -574,9 +605,9 @@ TData* SyntaxAnalyzer::member_access() {
 
 	// ��������� �� ���������
 	type = look_forward(1);
-	if (type == typeID)
+	if (type == typeID && look_forward(2) != typeEval)
 	{
-		SemanticTree* methodNode = objectNode->getNode();
+		SemanticTree* methodNode = objectNode->getClassNode();
 		if (methodNode == nullptr) {
 			scaner->PrintError("identifier not found in class", lex);
 			//return result;
@@ -596,9 +627,15 @@ TData* SyntaxAnalyzer::member_access() {
 			type = look_forward(1);
 		}
 	}
-	if (type == typeEval) {
-		assignment();
+	if (look_forward(2) == typeEval) {
+		SemanticTree* methodNode = new SemanticTree(*objectNode->getClassNode());
+		if (methodNode == nullptr) {
+			scaner->PrintError("ID not found in class", lex);
+			//return result;
+		}
+		assignment(methodNode);
 	}
+	//semanticTree = tmpNode;
 	return result;
 }
 
@@ -660,7 +697,9 @@ void SyntaxAnalyzer::operator_() {
 	if (type == typeID) {
 		type2 = look_forward(2);
 		if (type2 == typePoint) {
+			SemanticTree* tmpTree = semanticTree;
 			member_access();
+			semanticTree = tmpTree;
 			return;
 		}
 	}
@@ -891,7 +930,7 @@ TData* SyntaxAnalyzer::multiplier() {
 		}
 		if (type == typeDiv) {
 			TData* buffer = unary_operation();
-			if (buffer->dataType == TYPE_INTEGER && result->dataType == TYPE_INTEGER && result->value.dataDouble!=0) {
+			if (buffer->dataType != TYPE_DOUBLE && result->dataType != TYPE_DOUBLE && result->value.dataDouble != 0) {
 				result->value.dataDouble = (int)(result->value.dataDouble / buffer->value.dataDouble);
 			}
 			else
@@ -915,27 +954,29 @@ TData* SyntaxAnalyzer::unary_operation() {
 	int type, type2;
 	TData* result = new TData;
 
-	
+
 
 	type = look_forward(1);
 
 
-		if (type == typePlus) {
-			type = scan(lex);
-			TData* buffer = elementary_expression();
-			result->dataType = buffer->dataType;
-			result->value.dataDouble += buffer->value.dataDouble;
-		}else
+	if (type == typePlus) {
+		type = scan(lex);
+		TData* buffer = elementary_expression();
+		result->dataType = buffer->dataType;
+		result->value.dataDouble += buffer->value.dataDouble;
+	}
+	else
 		if (type == typeMinus) {
 			type = scan(lex);
 			TData* buffer = elementary_expression();
 			result->dataType = buffer->dataType;
 			result->value.dataDouble -= buffer->value.dataDouble;
-		}else 
+		}
+		else
 			result = elementary_expression();
 
-		type = look_forward(1);
-	
+	type = look_forward(1);
+
 	return result;
 }
 
@@ -956,10 +997,10 @@ TData* SyntaxAnalyzer::elementary_expression() {
 			return result;
 			break;
 		case constInt:
-			
-				result->value.dataDouble= std::stod(string(lex));
-				result->dataType = TYPE_INTEGER;
-				//res->value.dataInt = std::stoi(string(lex));
+
+			result->value.dataDouble = std::stod(string(lex));
+			result->dataType = TYPE_INTEGER;
+			//res->value.dataInt = std::stoi(string(lex));
 			return result;
 			break;
 		case constDouble:
@@ -989,7 +1030,9 @@ TData* SyntaxAnalyzer::elementary_expression() {
 		/*
 		// �������� ������� ����� � �������������� �����*/
 		if (look_forward(2) == typePoint) {
+			SemanticTree* tmpTree = semanticTree;
 			result = member_access();
+			semanticTree = tmpTree;
 			return result;
 		}
 
@@ -1001,6 +1044,10 @@ TData* SyntaxAnalyzer::elementary_expression() {
 		SemanticTree* node = semanticTree->findUp(lex);
 		if (node == nullptr) {
 			scaner->PrintError("Semant Error. Variable not found", lex);
+			//semanticTree->PrintError("Variable is not initialized", lex);
+		}
+		if (node->isSelfInit() == 0) {
+			scaner->PrintError("Semant Error. Variable not initialized", lex);
 			//semanticTree->PrintError("Variable is not initialized", lex);
 		}
 		result = node->getData();

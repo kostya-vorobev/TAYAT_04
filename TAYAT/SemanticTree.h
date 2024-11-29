@@ -53,6 +53,7 @@ struct Node {
 	int flagInit;
 	SemanticTree* pointer; // ”казатель на объект
 	SemanticTree* classPointer; // ”казатель на класс
+	SemanticTree* classNode;
 	void setInit() {
 		flagInit = 1;
 	};
@@ -85,10 +86,11 @@ public:
 	SemanticTree* getNode();
 	TYPE_OBJECT getSelfObjectType();
 	SemanticTree* getClassPointer();
+	SemanticTree* getClassNode();
 	TYPE_DATA getSelfDataType();
 	string getSelfId();
 	bool isSelfInit();
-	
+
 	SemanticTree* findUp(SemanticTree*, string);
 	SemanticTree* findUp(string);
 	SemanticTree* findUp(SemanticTree*, string, TYPE_OBJECT);
@@ -118,7 +120,7 @@ public:
 	bool setValue(const string& id, const TYPE_VALUE& val);
 
 	void setCurrent(SemanticTree* tree);
-
+	SemanticTree* copyTree();
 	SemanticTree* getCurrent();
 	void setInit();
 };

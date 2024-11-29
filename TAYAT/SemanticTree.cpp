@@ -20,7 +20,7 @@ SemanticTree::SemanticTree(Scanner* scanner)
 	this->node = new Node();
 	if (node != NULL) {
 		memcpy(this->node, node, sizeof(Node));
-		
+
 	}
 }
 
@@ -30,7 +30,7 @@ SemanticTree::SemanticTree(SemanticTree* up, SemanticTree* left, SemanticTree* r
 	this->left = left;
 	this->right = right;
 	this->node = new Node();
-	
+
 	if (node != NULL) {
 		memcpy(this->node, node, sizeof(Node));
 		node->dataType = TData();
@@ -44,7 +44,7 @@ SemanticTree::~SemanticTree()
 	if (node != nullptr) delete node;
 }
 
-void SemanticTree::PrintError(string errorMessage,  string lexeme)
+void SemanticTree::PrintError(string errorMessage, string lexeme)
 {
 	cout << "Semant Error. " << errorMessage << " Find: " << lexeme << endl;
 	exit(1);
@@ -231,7 +231,7 @@ void SemanticTree::print() {
 	}
 
 	if (right != NULL) {
-		std::cout << "right: " << right->node->id << " " ;
+		std::cout << "right: " << right->node->id << " ";
 		right->print(); // рекурсивный вызов для правого дочернего узла
 	}
 	std::cout << std::endl;
@@ -247,23 +247,23 @@ void SemanticTree::print(int level = 0) {
 
 		// Проверка типа данных и вывод соответствующего значения
 		if ((node->objectType == OBJ_VAR || node->objectType == OBJ_CONST) && node->flagInit == 1)
-		switch (node->dataType.dataType) {
-		case TYPE_INTEGER:
-			std::cout << "Value: " << node->dataType.value.dataInt << "\n";
-			break;
-		case TYPE_LONG:
-			std::cout << "Value: " << node->dataType.value.dataLong << "\n";
-			break;
-		case TYPE_SHORT:
-			std::cout << "Value: " << node->dataType.value.dataShort << "\n";
-			break;
-		case TYPE_DOUBLE:
-			std::cout << "Value: " << node->dataType.value.dataDouble << "\n";
-			break;
-		default:
-			std::cout << "Value: Unknown data type\n";
-			break;
-		}
+			switch (node->dataType.dataType) {
+			case TYPE_INTEGER:
+				std::cout << "Value: " << node->dataType.value.dataInt << "\n";
+				break;
+			case TYPE_LONG:
+				std::cout << "Value: " << node->dataType.value.dataLong << "\n";
+				break;
+			case TYPE_SHORT:
+				std::cout << "Value: " << node->dataType.value.dataShort << "\n";
+				break;
+			case TYPE_DOUBLE:
+				std::cout << "Value: " << node->dataType.value.dataDouble << "\n";
+				break;
+			default:
+				std::cout << "Value: Unknown data type\n";
+				break;
+			}
 		else
 		{
 			std::cout << "\n";
@@ -282,7 +282,7 @@ void SemanticTree::print(int level = 0) {
 	}
 	if (left != NULL) {
 		//if (left->node->id != "") {
-			std::cout << indent << "Left -> ";
+		std::cout << indent << "Left -> ";
 		//}
 		left->print(level + 1); // рекурсивный вызов для левого дочернего узла
 
@@ -326,6 +326,11 @@ TYPE_OBJECT SemanticTree::getSelfObjectType()
 SemanticTree* SemanticTree::getClassPointer()
 {
 	return this->node->classPointer;
+}
+
+SemanticTree* SemanticTree::getClassNode()
+{
+	return this->node->classNode;
 }
 
 TYPE_DATA SemanticTree::getSelfDataType()
@@ -390,18 +395,18 @@ bool SemanticTree::setValue(const string& id, const TYPE_VALUE& val) {
 	//node->node->setValue(val); // Установка нового значения
 	switch (node->node->dataType.dataType) {
 	case TYPE_INTEGER:
-			node->node->dataType.value.dataInt = (int)val.dataDouble;
+		node->node->dataType.value.dataInt = (int)val.dataDouble;
 		break;
 	case TYPE_LONG: {
-			node->node->dataType.value.dataLong = (long)val.dataDouble;
+		node->node->dataType.value.dataLong = (long)val.dataDouble;
 		break;
 	}
 	case TYPE_SHORT: {
-			node->node->dataType.value.dataShort = (short)val.dataDouble;
+		node->node->dataType.value.dataShort = (short)val.dataDouble;
 		break;
 	}
 	case TYPE_DOUBLE: {
-			node->node->dataType.value.dataDouble = val.dataDouble;
+		node->node->dataType.value.dataDouble = val.dataDouble;
 		break;
 	}
 	default:
@@ -445,3 +450,26 @@ void SemanticTree::setInit() {
 	this->node->flagInit = 1;
 }
 
+SemanticTree* SemanticTree::copyTree() {
+	SemanticTree* newTree = new SemanticTree();
+	newTree->node = new Node();
+
+	// Копирование данных из текущего узла
+	*newTree->node = *this->node; // Копируем данные узла, включая classNode
+
+	if (this->node->classNode != nullptr) {
+		newTree->node->classNode = this->node->classNode->copyTree(); // Копируем classNode
+	}
+
+	if (this->left) {
+		newTree->left = this->left->copyTree(); // Рекурсивное копирование левого поддерева
+		newTree->left->up = newTree; // Устанавливаем родителя для нового дерева
+	}
+
+	if (this->right) {
+		newTree->right = this->right->copyTree(); // Рекурсивное копирование правого поддерева
+		newTree->right->up = newTree; // Устанавливаем родителя для нового дерева
+	}
+
+	return newTree;
+}
