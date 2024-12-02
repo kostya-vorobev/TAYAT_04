@@ -13,8 +13,8 @@ int main()
     }
 
     int c = 15;
-    c = (-9/2)*2.0e0 + c;
-    cout << c;
+    c = 2.0e+1;
+    //cout << c;
         Scanner *scaner = new Scanner(file);
         SemanticTree* semanticTree = new SemanticTree(scaner);
         SyntaxAnalyzer* diagram = new SyntaxAnalyzer(scaner, semanticTree);

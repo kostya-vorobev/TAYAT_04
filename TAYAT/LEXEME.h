@@ -3,6 +3,8 @@
 #define __LEXEME
 
 #include <string>
+#include <locale>
+#include <sstream> 
 using namespace std;
 
 #define MAX_TEXT 10000 // Максимальный размер текста

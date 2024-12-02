@@ -34,7 +34,7 @@ void SyntaxAnalyzer::Tclass() {
 	inClass = true;
 	TypeLex lex;
 	int type;
-
+	
 	type = scan(lex);
 
 	if (type != typeClass)
@@ -48,7 +48,7 @@ void SyntaxAnalyzer::Tclass() {
 		scaner->PrintError("Waiting ID", lex);
 
 	if (semanticTree->isDoublicateId(semanticTree, lex))
-		semanticTree->PrintError("Reassignment", lex);
+		scaner->PrintError("Semant Error. Reassignment", lex);
 
 	Node* newNode = new Node();
 	newNode->id = lex;
@@ -99,7 +99,11 @@ void SyntaxAnalyzer::classDesc()
 	if (type == typeLeftBracket) {
 		function();
 	}
-	else data();
+	else {
+		semanticTree->flag_interp = true;
+		data();
+		semanticTree->flag_interp = false;
+	}
 }
 
 void SyntaxAnalyzer::description() {
@@ -235,6 +239,7 @@ void SyntaxAnalyzer::function() {
 
 	// �������� � ����������� ����
 	semanticTree = tmpTree;
+	semanticTree->flag_interp = true;
 }
 
 void SyntaxAnalyzer::function_body() {
@@ -323,14 +328,14 @@ void SyntaxAnalyzer::variable() {
 	type = scan(lex);
 	// Проверка на дублирование идентификатора
 	if (semanticTree->isDoublicateId(semanticTree, lex)) {
-		semanticTree->PrintError("Reassignment", lex);
+		scaner->PrintError("Semant Error. Reassignment", lex);
 	}
 
 	// Установка идентификатора
 	newNode->id = lex;
 
 	type = look_forward(1);
-	if (type == typeEval) {
+	if (type == typeEval && semanticTree->flag_interp) {
 		newNode->flagInit = 1;
 	}
 	else {
@@ -381,7 +386,8 @@ void SyntaxAnalyzer::assignment(SemanticTree* semanticID) {
 	if (node == NULL) {
 		scaner->PrintError("Semant Error. ID is not found", lex);
 	}
-	node->setInit();
+	if (semanticTree->flag_interp)
+		node->setInit();
 	// ����� �������� ����
 	TYPE_DATA varType = node->getSelfDataType();
 
@@ -399,7 +405,8 @@ void SyntaxAnalyzer::assignment(SemanticTree* semanticID) {
 
 
 	TData* val = expression();
-	node->setValue(node->getSelfId(), val->value);
+	if (semanticTree->flag_interp)
+		node->setValue(node->getSelfId(), val->value);
 	return;
 }
 
@@ -419,7 +426,8 @@ void SyntaxAnalyzer::assignment() {
 		if(node == NULL)
 		scaner->PrintError("Semant Error. ID is not found", lex);
 	}
-	node->setInit();
+	if (semanticTree->flag_interp)
+		node->setInit();
 	// ����� �������� ����
 	TYPE_DATA varType = node->getSelfDataType();
 
@@ -437,7 +445,8 @@ void SyntaxAnalyzer::assignment() {
 
 
 	TData* val = expression();
-	node->setValue(node->getSelfId(), val->value);
+	if (semanticTree->flag_interp)
+		node->setValue(node->getSelfId(), val->value);
 }
 
 
@@ -522,9 +531,11 @@ void SyntaxAnalyzer::operators_and_descriptions() {
 
 void SyntaxAnalyzer::Switch() {
 	TypeLex lex;
-	int type;
+	int type, type2;
 	bool local_flag_interp = semanticTree->flag_interp;
-
+	bool isFindTrue = false;
+	int addr;
+	bool isDublicate = false;
 	type = scan(lex);
 	if (type != typeSwitch)
 		scaner->PrintError("Expected 'switch' keyword", lex);
@@ -537,8 +548,18 @@ void SyntaxAnalyzer::Switch() {
 		scaner->PrintError("Expected 'not expression'", lex);
 		return;
 	}
-	expression();
 
+	if (look_forward(1) == constDouble) {
+		scan(lex);
+		scaner->PrintError("Double value is not supported", lex);
+	}
+
+	TData* result = expression();
+
+	if (result->dataType == TYPE_DOUBLE)
+		scaner->PrintError("Double value is not supported", to_string(result->value.dataDouble));
+
+	result->value.dataInt = result->value.dataDouble;
 	type = scan(lex);
 	if (type != typeRightBracket)
 		scaner->PrintError("Expected ')'", lex);
@@ -548,26 +569,54 @@ void SyntaxAnalyzer::Switch() {
 		scaner->PrintError("Expected '{'", lex);
 
 	type = look_forward(1);
+	TData* constCase = new TData();
 	while (type != typeRightBrace) {
 		if (type == typeCase) {
 			do {
+				type2 = look_forward(1);
+				if (type2 == constInt) {
+					constCase = expression();
+					constCase->value.dataInt = constCase->value.dataDouble;
+				}
+				
 			} while (scan(lex) != typeColon);
-			if (look_forward(1) != typeCase)
+			//if (look_forward(1) != typeCase && local_flag_interp && result->value.dataInt == constCase->value.dataInt)
+			if (local_flag_interp && result->value.dataInt == constCase->value.dataInt) {
 				operators_and_descriptions();
+				isFindTrue = true;
+			}
+			else
+				while (look_forward(1) != typeCase && look_forward(1) != typeBreak) {
+					scan(lex);
+				};
 		}
 		else if (type == typeDefault) {
 			type = scan(lex);
+			if (isDublicate)
+				scaner->PrintError("Default dublicate", lex);
+			
+			
 			if (look_forward(1) == typeColon) {
 				scan(lex);
 			}
-			if (look_forward(1) != typeCase)
-				operators_and_descriptions();
+			addr = scaner->getPointer();
+			while (look_forward(1) != typeCase && look_forward(1) != typeBreak) {
+				scan(lex);
+			};
+			isDublicate == true;
 		}
 		else if (type == typeBreak)
 		{
 			operators_and_descriptions();
 		}
 		type = look_forward(1);
+	}
+	if (!isFindTrue && local_flag_interp)
+	{
+		int bufferAddr = scaner->getPointer();
+		scaner->putPointer(addr);
+		operators_and_descriptions();
+		scaner->putPointer(bufferAddr);
 	}
 
 	type = scan(lex);
@@ -592,6 +641,10 @@ TData* SyntaxAnalyzer::member_access() {
 	if (objectNode == NULL) {
 		//objectNode = semanticTree->getClassPointer();
 		objectNode = semanticTree->getClassNode();
+		if (objectNode == NULL) {
+			scaner->PrintError("Object not found", lex);
+			return result;
+		}
 		objectNode = objectNode->findRightLeft(lex);
 		if (objectNode == NULL) {
 			scaner->PrintError("Object not found", lex);
@@ -903,6 +956,7 @@ void SyntaxAnalyzer::function_call(SemanticTree* semantTree) {
 void SyntaxAnalyzer::condition() {
 	TypeLex lex;
 	int type;
+	bool local_flag_interp = semanticTree->flag_interp;
 
 	type = scan(lex);
 	if (type != typeSwitch)
@@ -912,7 +966,14 @@ void SyntaxAnalyzer::condition() {
 	if (type != typeLeftBracket)
 		scaner->PrintError("Expected ( got", lex);
 
-	expression();
+	if (look_forward(1) == constDouble)
+		scan(lex);
+		scaner->PrintError("Double value is not supported", lex);
+
+	TData* result = expression();
+
+	if (result->dataType == TYPE_DOUBLE)
+		scaner->PrintError("Double value is not supported", to_string(result->value.dataDouble));
 
 	type = scan(lex);
 	if (type != typeRightBracket)
@@ -975,14 +1036,14 @@ TData* SyntaxAnalyzer::multiplier() {
 	type = look_forward(1);
 	while (type == typeMul || type == typeDiv || type == typeMod) {
 		type = scan(lex);
-		if (type == typeMul) {
+		if (type == typeMul && semanticTree->flag_interp) {
 			TData* buffer = unary_operation();
 			result->dataType = buffer->dataType;
 			result->value.dataDouble *= buffer->value.dataDouble;
 		}
-		if (type == typeDiv) {
+		if (type == typeDiv && semanticTree->flag_interp) {
 			TData* buffer = unary_operation();
-			if (buffer->dataType != TYPE_DOUBLE && result->dataType != TYPE_DOUBLE && result->value.dataDouble != 0) {
+			if (buffer->dataType != TYPE_DOUBLE && result->dataType != TYPE_DOUBLE && buffer->value.dataDouble != 0) {
 				result->value.dataDouble = (int)(result->value.dataDouble / buffer->value.dataDouble);
 			}
 			else
@@ -991,7 +1052,7 @@ TData* SyntaxAnalyzer::multiplier() {
 				else
 					scaner->PrintError("Zero devision.", lex);
 		}
-		if (type == typeMod) {
+		if (type == typeMod && semanticTree->flag_interp) {
 			TData* buffer = elementary_expression();
 			result->dataType = buffer->dataType;
 			result->value.dataDouble = fmod(result->value.dataDouble, buffer->value.dataDouble);
@@ -1043,6 +1104,7 @@ TData* SyntaxAnalyzer::elementary_expression() {
 
 	if (type == typeConst || type == constInt || type == constDouble) {
 		type = scan(lex);
+		if (semanticTree->flag_interp == false) return result;
 		switch (type) {
 		case typeConst:
 			result->value.dataInt = 0;
@@ -1057,7 +1119,11 @@ TData* SyntaxAnalyzer::elementary_expression() {
 			break;
 		case constDouble:
 			try {
-				result->value.dataDouble = std::stod(lex);
+				std::stringstream bufferString(lex);
+				double bufferDouble;
+				bufferString >> bufferDouble;
+				// Присваиваем значение результату
+				result->value.dataDouble = bufferDouble;
 				result->dataType = TYPE_DOUBLE;
 			}
 			catch (const std::invalid_argument&) {

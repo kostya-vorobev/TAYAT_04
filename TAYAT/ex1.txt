@@ -1,11 +1,10 @@
-
 class Lab10{
-	//int lab9 = 10;
+	int lab9 = 10;
 	double s;
 };
 class Lab4{
-	int a;
-	int b;
+	int a = 10;
+	int b = 4;
 	Lab10 lab10;
 	int Sum()
 	{
@@ -13,26 +12,50 @@ class Lab4{
 	}
 
 };
-int a = 5;
+int a = 13;
 int Sums()
 {
 	int b;
-	b = 10 + a;
+	b = 11 + a;
+	switch(a)
+	{
+		case 15:
+		case 13:
+			a = a + 1;
+			Sums(); 
+			break;
+		default:
+			b = 22;  
+			break;
+	}
 }
 	//комментарий
 int main()
 {
-	double c;
-	//double s = 15;
+	int s = 12;
+	int c = 11;
+	switch(s)
+	{
+		case 14:
+		case 13:
+			c = 10; 
+			break;
+		default:
+			c = 22;  
+			break;
+	}
+	
+	long g = 21 + 1;
+	short h = 22;
 	//c = 5 * s;
 	Lab4 lab1;
-	//Lab4 lab2;
+	Lab4 lab2;
 	//c = 5 + lab1.lab10.lab9;
 	//s = 2.0e0*(-9/2) + s;
 	//lab1.lab10.s = 12;
 	//lab2.lab10.s = 2.0e0;
 	Sums();
-	lab1.a = 20;
+	//lab1.a = 20;
 	lab1.Sum();
-	c = lab1.b + a;
+	c = lab1.b + lab2.b + a;
 }

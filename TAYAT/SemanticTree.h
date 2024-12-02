@@ -31,7 +31,7 @@ union TYPE_VALUE {
 	double dataDouble = 0;
 };
 
-struct TData {
+struct TData { // Данные
 	TYPE_DATA dataType;
 	TYPE_VALUE value;
 	TData() {
@@ -49,12 +49,12 @@ struct Node {
 	string id;
 	TypeLex lex;
 	TYPE_OBJECT objectType;
-	TData dataType;
-	int flagInit;
+	TData dataType; // Значение
+	int flagInit; //Флаг инициализации
 	SemanticTree* pointer; // Указатель на объект
 	SemanticTree* classPointer; // Указатель на класс
-	SemanticTree* classNode;
-	int addr;
+	SemanticTree* classNode;	// Копия класса
+	int addr; // Адрес функции
 	void setInit() {
 		flagInit = 1;
 	};
