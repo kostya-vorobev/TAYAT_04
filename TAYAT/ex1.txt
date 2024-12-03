@@ -8,24 +8,51 @@ class Lab4{
 	Lab10 lab10;
 	int Sum()
 	{
-		b = 10 + a;
+	switch(a)
+		{
+		case 10:
+		case 11:
+			a = a + 1;
+			b = b + 1;
+			Sum(); 
+			break;
+		default:
+			b = b + 22;  
+			break;
+		}
 	}
 
 };
 int a = 13;
+int a1 = 0;
+int a2 = 0;
+int a3 = 0;
+int a4 = 0;
 int Sums()
 {
 	int b;
-	b = 11 + a;
+	b = 1;
 	switch(a)
 	{
-		case 15:
+		case 14:
+			a = a + 1;
+			switch(a)
+			{
+			case 15:
+				a1 = a1 + 1;
+				break;
+			default: 
+				a2 = a2 + 1;
+				break;
+			}
+			break;
 		case 13:
 			a = a + 1;
+			a3 = a3 + 1;
 			Sums(); 
 			break;
 		default:
-			b = 22;  
+			a4 = a4 + 1;  
 			break;
 	}
 }
@@ -57,5 +84,5 @@ int main()
 	Sums();
 	//lab1.a = 20;
 	lab1.Sum();
-	c = lab1.b + lab2.b + a;
+	c = lab1.b;
 }

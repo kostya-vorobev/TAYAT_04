@@ -533,9 +533,11 @@ void SyntaxAnalyzer::Switch() {
 	TypeLex lex;
 	int type, type2;
 	bool local_flag_interp = semanticTree->flag_interp;
+	semanticTree->flag_interp = false;
 	bool isFindTrue = false;
-	int addr;
+	int addr = 0;
 	bool isDublicate = false;
+	bool isResFind = false;
 	type = scan(lex);
 	if (type != typeSwitch)
 		scaner->PrintError("Expected 'switch' keyword", lex);
@@ -553,9 +555,9 @@ void SyntaxAnalyzer::Switch() {
 		scan(lex);
 		scaner->PrintError("Double value is not supported", lex);
 	}
-
+	semanticTree->flag_interp = true;
 	TData* result = expression();
-
+	semanticTree->flag_interp = false;
 	if (result->dataType == TYPE_DOUBLE)
 		scaner->PrintError("Double value is not supported", to_string(result->value.dataDouble));
 
@@ -571,24 +573,40 @@ void SyntaxAnalyzer::Switch() {
 	type = look_forward(1);
 	TData* constCase = new TData();
 	while (type != typeRightBrace) {
+		isResFind = false;
 		if (type == typeCase) {
 			do {
 				type2 = look_forward(1);
-				if (type2 == constInt) {
+				if (type2 == constInt && local_flag_interp) {
+					semanticTree->flag_interp = true;
 					constCase = expression();
 					constCase->value.dataInt = constCase->value.dataDouble;
+					isResFind = true;
+					semanticTree->flag_interp = false;
+				}
+				if (type2 == typeSwitch)
+				{
+					Switch();
 				}
 				
 			} while (scan(lex) != typeColon);
 			//if (look_forward(1) != typeCase && local_flag_interp && result->value.dataInt == constCase->value.dataInt)
-			if (local_flag_interp && result->value.dataInt == constCase->value.dataInt) {
+			if (local_flag_interp && result->value.dataInt == constCase->value.dataInt && isResFind) {
+				semanticTree->flag_interp = true;
 				operators_and_descriptions();
 				isFindTrue = true;
+				semanticTree->flag_interp = false;
 			}
-			else
+			else {
 				while (look_forward(1) != typeCase && look_forward(1) != typeBreak) {
+					if (look_forward(1) == typeSwitch)
+					{
+						Switch();
+						break;
+					}
 					scan(lex);
 				};
+			}
 		}
 		else if (type == typeDefault) {
 			type = scan(lex);
@@ -601,6 +619,11 @@ void SyntaxAnalyzer::Switch() {
 			}
 			addr = scaner->getPointer();
 			while (look_forward(1) != typeCase && look_forward(1) != typeBreak) {
+				if (look_forward(1) == typeSwitch)
+				{
+					Switch();
+					break;
+				}
 				scan(lex);
 			};
 			isDublicate == true;
@@ -610,18 +633,23 @@ void SyntaxAnalyzer::Switch() {
 			operators_and_descriptions();
 		}
 		type = look_forward(1);
+		
 	}
-	if (!isFindTrue && local_flag_interp)
+	if (!isFindTrue && local_flag_interp && addr!= 0)
 	{
+		semanticTree->flag_interp = true;
 		int bufferAddr = scaner->getPointer();
 		scaner->putPointer(addr);
 		operators_and_descriptions();
 		scaner->putPointer(bufferAddr);
+		semanticTree->flag_interp = false;
 	}
 
 	type = scan(lex);
 	if (type != typeRightBrace)
 		scaner->PrintError("Expected '}'", lex);
+	if(local_flag_interp)
+		semanticTree->flag_interp = true;
 }
 
 TData* SyntaxAnalyzer::member_access() {
@@ -866,10 +894,23 @@ void SyntaxAnalyzer::function_call() {
 	}
 	// ���� ����, ��������������� �������
 	SemanticTree* currentTree = semanticTree;
-	SemanticTree* objectNode = semanticTree->findUp(lex);
-	SemanticTree* tmpTree = objectNode;
+	SemanticTree* objectNode;
+	SemanticTree* tmpTree;
+	SemanticTree* methodNode;
+	if (semanticTree->getSelfObjectType() == OBJ_CLASS)
+	{
+		objectNode = semanticTree->findRightLeft(lex);
+	}
+	else
+	{
+		objectNode = semanticTree->findUp(lex);
+
+	}
+
+	tmpTree = objectNode;
 	// ����� ��������� ����� ������
-	SemanticTree* methodNode = objectNode->findMethod(lex); // ����� ��� ������ �� ����� ������ � ������ �� findUp
+	methodNode = objectNode->findMethod(lex); // ����� ��� ������ �� ����� ������ � ������ �� findUp
+
 	if (methodNode == NULL) {
 		scaner->PrintError("Method not found", lex);
 		return; // ����� �� ������� ��� ������

@@ -478,4 +478,4 @@ SemanticTree* SemanticTree::copyTree() {
 	return newTree;
 }
 
-bool SemanticTree::flag_interp = false;
+bool SemanticTree::flag_interp = true;
